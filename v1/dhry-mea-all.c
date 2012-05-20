@@ -1,21 +1,3 @@
-                                                                                                                                                                                                                                                                
-Relay-Version: version B 2.10 5/3/83; site utzoo.UUCP
-Posting-Version: Notesfiles $Revision: 1.6.2.14 $; site siemens.UUCP
-Path: utzoo!watmath!clyde!burl!ulysses!allegra!princeton!eosp1!siemens!bea
-From: b...@siemens.UUCP
-Newsgroups: net.sources
-Subject: Dhrystone benchmark, part 4 of 4
-Message-ID: <28600007@siemens.UUCP>
-Date: Thu, 15-Nov-84 10:15:00 EST
-Article-I.D.: siemens.28600007
-Posted: Thu Nov 15 10:15:00 1984
-Date-Received: Fri, 16-Nov-84 05:34:20 EST
-Lines: 733
-Nf-ID: #N:siemens:28600007:000:31723
-Nf-From: siemens!bea    Nov 15 10:15:00 1984
-
-
-
 /******************************************************************************/
 /*                                                                            */
 /*                   "DHRYSTONE" Benchmark Program                            */
