@@ -1,0 +1,65 @@
+Since I was flooded with requests to not wait a day, let alone a week
+before posting Dhrystone 2.0, here it is, without any delay (and no
+results, either).
+
+I've enclosed a new submission form (note new address for mailings).
+Please deluge this mailbox (..!uunet!pcrat!dry2) with your results.
+I'll summarize and repost when the dust clears.  Please do not
+assume that I will pull posted results off of the net (I won't, its
+too much work).
+
+Also, please make note of the fact that I've attempted to include
+a Makefile for UNIX.  Pay particular attention to the HZ parameter,
+even though your power may be 50 or 60 hertz, your computer may not be.
+You may have to ask someone, read the manual, or check
+	/usr/include/sys/param.h
+for this information.
+
+There are two versions to run, one with register variables, and one
+without.  Please let the benchmark run for 30,000 loops on sixteen
+bit machines, and for much longer (a minute or two) on faster machines.
+For segmented architectures, it is appropriate to submit results for
+all memory models, as shown below.
+
+Here's a sample submission of results:
+
+DHRYSTONE 2.0 BENCHMARK REPORTING FORM
+MANUF: IBM
+MODEL: PC/AT
+PROC: 80286
+CLOCK: 8 Mhz
+OS: Venix
+OVERSION: SVr2.3
+COMPILER: AT&T cc
+CVERSION: 11/8/84
+OPTIONS: -O
+NOREG: 1318
+REG: 1450
+NOTES: Small Model
+DATE: 03/04/88
+SUBMITTER: pcrat!rick (Rick Richardson)
+MAILTO: uunet!pcrat!dry2
+
+DHRYSTONE 2.0 BENCHMARK REPORTING FORM
+MANUF: IBM
+MODEL: PC/AT
+PROC: 80286
+CLOCK: 8 Mhz
+OS: Venix
+OVERSION: SVr2.3
+COMPILER: AT&T cc
+CVERSION: 11/8/84
+OPTIONS: -O -Ml
+NOREG: 1043
+REG: 1043
+NOTES: Large Model
+DATE: 03/04/88
+SUBMITTER: pcrat!rick (Rick Richardson)
+MAILTO: uunet!pcrat!dry2
+
+
+		Rick Richardson, President, PC Research, Inc.
+
+(201) 542-3734 (voice, nights)   OR     (201) 834-1378 (voice, days)
+uunet!pcrat!rick (UUCP)			rick%pcrat.u...@uunet.uu.net (INTERNET)
+		uunet!pcrat!dry2   (Dhrystone submission forms only)

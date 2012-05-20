@@ -1,0 +1,1026 @@
+Path: gmdzi!unido!mcsun!tuvie!inst182
+From: inst182@tuvie (Inst.f.Techn.Informatik)
+Newsgroups: alt.sources
+Subject: dhrystone benchmark (Part 2)
+Message-ID: <1102@tuvie>
+Date: 14 Feb 90 17:29:20 GMT
+Organization: TU Vienna EDP-Center, Vienna, AUSTRIA
+Lines: 1016
+Posted: Wed Feb 14 18:29:20 1990
+
+
+#! /bin/sh
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  Makefile RATIONALE README README.RER clarify.doc
+#   pure2_1.dif submit.frm
+# Wrapped by web@kivax on Mon Feb 12 07:45:32 1990
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test -f Makefile -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"Makefile\"
+else
+echo shar: Extracting \"Makefile\" \(3956 characters\)
+sed "s/^X//" >Makefile <<'END_OF_Makefile'
+X#
+X#	Adjust for your system!
+X#
+X#	Common options for generic UNIX and Microsoft C (under DOS)
+X#	are listed here.  You can change them by switching the order,
+X#	placing the ones you want last.  Pay particular attention to
+X#	the HZ parameter, which may or may not be listed in some
+X#	header file on your system, such as <sys/param.h> or <limits.h>
+X#	(as CLK_TCK).  Even if it is listed, it may be incorrect.
+X#	Also, some operating systems (notably some (all?) versions
+X#	of Microport UNIX) lie about the time.  Sanity check with a
+X#	stopwatch.
+X#
+X#	For Microsoft C under DOS, you need a real make, not MSC make,
+X#	to run this Makefile.  The public domain "ndmake" will suffice.
+X#
+XCC=		cl			# C compiler name goes here (MSC)
+XCC=		cc			# C compiler name goes here (UNIX)
+X
+XPROGS=		msc			# Programs to build (MSC)
+XPROGS=		unix			# Programs to build (UNIX)
+X
+XTIME_FUNC=	-DMSC_CLOCK		# Use Microsoft clock() for measurement
+XTIME_FUNC=	-DTIME			# Use time(2) for measurement
+XTIME_FUNC=	-DTIMES			# Use times(2) for measurement
+XHZ=		50			# Frequency of times(2) clock ticks
+XHZ=		60			# Frequency of times(2) clock ticks
+XHZ=		100			# Frequency of times(2) clock ticks
+XHZ=		1			# Give bogus result unless changed!
+X
+XSTRUCTASSIGN=	-DNOSTRUCTASSIGN	# Compiler cannot assign structs
+XSTRUCTASSIGN=				# Compiler can assign structs
+X
+XENUMS=		-DNOENUMS		# Compiler doesn't have enum type
+XENUMS=					# Compiler does have enum type
+X
+XOPTIMIZE=	-Ox -G2			# Optimization Level (MSC, 80286)
+XOPTIMIZE=	-O			# Optimization Level (generic UNIX)
+X
+XLFLAGS=					#Loader Flags
+X
+XCFLAGS=	$(OPTIMIZE) $(TIME_FUNC) -DHZ=$(HZ) $(ENUMS) $(STRUCTASSIGN) $(CFL)
+X
+X#
+X#		You shouldn't need to touch the rest
+X#
+XSRC=		dhry_1.c dhry_2.c
+XHDR=		dhry.h
+X
+XUNIX_PROGS=	dry2 dry2reg
+XMSC_PROGS=	sdry2.exe sdry2reg.exe mdry2.exe mdry2reg.exe \
+X		ldry2.exe ldry2reg.exe cdry2.exe cdry2reg.exe \
+X		hdry2.exe hdry2reg.exe
+X
+X# Files added by rer:
+XFILES1=		README.RER clarify.doc Makefile submit.frm pure2_1.dif \
+X		dhry_c.dif
+X# Reinhold's files:
+XFILES2=		README RATIONALE $(HDR) $(SRC)
+XFILES3=		dhry.p
+X
+Xall:	$(PROGS)
+X
+Xunix:	$(UNIX_PROGS)
+X
+Xmsc:	$(MSC_PROGS)
+X
+Xdry2:		$(SRC) $(HDR)
+X		$(CC) $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xdry2reg:	$(SRC) $(HDR)
+X		$(CC) $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xsdry2.exe:	$(SRC) $(HDR)
+X		$(CC) -AS $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xsdry2reg.exe:	$(SRC) $(HDR)
+X		$(CC) -AS $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xmdry2.exe:	$(SRC) $(HDR)
+X		$(CC) -AM $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xmdry2reg.exe:	$(SRC) $(HDR)
+X		$(CC) -AM $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xldry2.exe:	$(SRC) $(HDR)
+X		$(CC) -AL $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xldry2reg.exe:	$(SRC) $(HDR)
+X		$(CC) -AL $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xcdry2.exe:	$(SRC) $(HDR)
+X		$(CC) -AC $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xcdry2reg.exe:	$(SRC) $(HDR)
+X		$(CC) -AC $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xhdry2.exe:	$(SRC) $(HDR)
+X		$(CC) -AH $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xhdry2reg.exe:	$(SRC) $(HDR)
+X		$(CC) -AH $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xshar:	dry2shar.1 dry2shar.2 dry2shar.3
+X
+Xdry2.arc:	$(FILES1) $(FILES2) $(FILES3)
+X	arc a dry2.arc $(FILES1) $(FILES2) $(FILES3)
+X
+Xdry2shar.1: $(FILES1)
+X	shar -vc -p X $(FILES1) >$@
+X
+Xdry2shar.2: $(FILES2)
+X	shar -vc -p X $(FILES2) >$@
+X
+Xdry2shar.3: $(FILES3)
+X	shar -v -p X $(FILES3) >$@
+X
+Xclean:
+X	-rm -f *.o *.obj
+X
+Xclobber: clean
+X	-rm -f $(UNIX_PROGS) $(MSC_PROGS) dry2shar.* dry2.arc
+X
+Xpost:	dry2shar.1	dry2shar.2	dry2shar.3
+X	for i in 1 2 3;\
+X	do\
+X		cat HEADERS BOILER.$$i dry2shar.$$i |\
+X		inews -h -t "Dhrystone 2.1 ($$i of 3)" -n comp.arch;\
+X	done
+X
+Xrepost:	dry2shar.1	dry2shar.2	dry2shar.3
+X	for i in 3;\
+X	do\
+X		cat HEADERS BOILER.$$i dry2shar.$$i |\
+X		inews -h -t "REPOST: Dhrystone 2.1 ($$i of 3)" -n comp.arch;\
+X	done
+X
+Xmail:	dry2shar.1	dry2shar.2	dry2shar.3
+X	for i in 1 2 3;\
+X	do\
+X		cat BOILER.$$i dry2shar.$$i |\
+X		mailx -s "Dhrystone 2.1 ($$i of 3)" $(ADDR);\
+X	done
+X
+Xdos:
+X	doscopy -a $(FILES1) $(FILES2) $(FILES3) dos!a:
+END_OF_Makefile
+if test 3956 -ne `wc -c <Makefile`; then
+    echo shar: \"Makefile\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f RATIONALE -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"RATIONALE\"
+else
+echo shar: Extracting \"RATIONALE\" \(18793 characters\)
+sed "s/^X//" >RATIONALE <<'END_OF_RATIONALE'
+X
+X
+X    Dhrystone Benchmark: Rationale for Version 2 and Measurement Rules
+X
+X
+X                 Reinhold P. Weicker
+X                 Siemens AG, E STE 35
+X                 Postfach 3240
+X                 D-8520 Erlangen
+X                 Germany (West)
+X
+X
+X
+X
+X1.  Why a Version 2 of Dhrystone?
+X
+XThe Dhrystone benchmark  program  [1]  has  become  a  popular  benchmark  for
+XCPU/compiler   performance   measurement,   in   particular  in  the  area  of
+Xminicomputers, workstations, PC's and microprocesors.  It apparently satisfies
+Xa  need  for  an  easy-to-use  integer benchmark; it gives a first performance
+Xindication which is more meaningful than MIPS numbers which, in their  literal
+Xmeaning  (million  instructions  per  second), cannot be used across different
+Xinstruction sets (e.g. RISC  vs.  CISC).   With  the  increasing  use  of  the
+Xbenchmark, it seems necessary to reconsider the benchmark and to check whether
+Xit can still fulfill this function.  Version 2 of Dhrystone is the  result  of
+Xsuch a re-evaluation, it has been made for two reasons:
+X
+Xo Dhrystone has been published in Ada [1], and Versions in Ada, Pascal  and  C
+X  have  been  distributed  by  Reinhold Weicker via floppy disk.  However, the
+X  version that was used most often for benchmarking has been the version  made
+X  by  Rick  Richardson  by another translation from the Ada version into the C
+X  programming language, this has been the version  distributed  via  the  UNIX
+X  network Usenet [2].
+X
+X  There is an obvious need for a common C version of Dhrystone, since C is  at
+X  present  the  most  popular  system  programming  language  for the class of
+X  systems (microcomputers, minicomputers,  workstations)  where  Dhrystone  is
+X  used  most.   There  should  be,  as  far as possible, only one C version of
+X  Dhrystone such that results can be compared  without  restrictions.  In  the
+X  past,  the  C  versions  distributed by Rick Richardson (Version 1.1) and by
+X  Reinhold Weicker had small (though not significant) differences.
+X
+X  Together with the new C version, the  Ada  and  Pascal  versions  have  been
+X  updated as well.
+X
+Xo As far as it is  possible  without  changes  to  the  Dhrystone  statistics,
+X  optimizing   compilers   should   be  prevented  from  removing  significant
+X  statements.  It has  turned  out  in  the  past  that  optimizing  compilers
+X  suppressed  code  generation for too many statements (by "dead code removal"
+X  or  "dead  variable  elimination").   This  has  lead  to  the  danger  that
+X  benchmarking  results obtained by a naive application of Dhrystone - without
+X  inspection of the code that was generated - could become meaningless.
+X
+XThe  overall  policiy  for  version  2  has  been  that  the  distribution  of
+Xstatements,  operand types and operand locality described in [1] should remain
+Xunchanged as much as possible.  (Very few changes were necessary; their impact
+Xshould be negligible.)  Also, the order of statements should remain unchanged.
+XAlthough I am aware of some critical remarks on the benchmark - I  agree  with
+Xseveral  of them - and know some suggestions for improvement, I didn't want to
+Xchange the benchmark into something different from what has  become  known  as
+X"Dhrystone"; the confusion generated by such a change would probably outweight
+Xthe benefits. If I were to write a new benchmark program, I wouldn't  give  it
+Xthe  name  "Dhrystone"  since  this  denotes  the  program  published  in [1].
+XHowever, I do recognize  the  need  for  a  larger  number  of  representative
+Xprograms  that can be used as benchmarks; users should always be encouraged to
+Xuse more than just one benchmark.
+X
+XThe new versions (version 2.1 for C, Pascal and Ada) will  be  distributed  as
+Xwidely as possible.  (Version 2.1 differs from version 2.0 distributed via the
+XUNIX Network Usenet in  March  1988  only  in  a  few  corrections  for  minor
+Xdeficiencies  found  by  users  of  version 2.0.)  Readers who want to use the
+Xbenchmark for their own measurements can obtain  a  copy  in  machine-readable
+Xform on floppy disk (MS-DOS or XENIX format) from the author.
+X
+X
+X2.  Overall Characteristics of Version 2
+X
+XIn general, version 2  follows  -  in  the  parts  that  are  significant  for
+Xperformance  measurement,  i.e.   within  the measurement loop - the published
+X(Ada) version and the C versions previously distributed.  Where  the  versions
+Xdistributed  by  Rick Richardson [2] and Reinhold Weicker have been different,
+Xit  follows  the  version  distributed  by  Reinhold  Weicker.  (However,  the
+Xdifferences  have  been  so  small  that their impact on execution time in all
+Xlikelihood has been negligible.)  The initialization and UNIX  instrumentation
+Xpart  -  which  had  been  omitted  in  [1] - follows mostly the ideas of Rick
+XRichardson [2].  However, any changes in the initialization part  and  in  the
+Xprinting  of  the  result have no impact on performance measurement since they
+Xare outside the measaurement loop.  As a concession to older compilers,  names
+Xhave been made unique within the first 8 characters for the C version.
+X
+XThe original publication of Dhrystone did not contain any statements for  time
+Xmeasurement  since  they  are necessarily system-dependent. However, it turned
+Xout that it is not enough just to inclose the main procedure of Dhrystone in a
+Xloop  and  to  measure the execution time.  If the variables that are computed
+Xare not used somehow, there is the danger that the compiler considers them  as
+X"dead  variables" and suppresses code generation for a part of the statements.
+XTherefore in version 2 all variables of "main" are printed at the end  of  the
+Xprogram.  This also permits some plausibility control for correct execution of
+Xthe benchmark.
+X
+XAt several places in the benchmark, code has been added, but only in  branches
+Xthat  are  not  executed. The intention is that optimizing compilers should be
+Xprevented from moving code out of the measurement loop, or from removing  code
+Xaltogether.  Statements that are executed have been changed in very few places
+Xonly.  In these cases, only the role of some operands has been changed, and it
+Xwas   made  sure  that  the  numbers  defining  the  "Dhrystone  distribution"
+X(distribution of statements, operand types and locality) still hold as much as
+Xpossible.   Except for sophisticated optimizing compilers, execution times for
+Xversion 2.1 should be the same as for previous versions.
+X
+XBecause of the self-imposed limitation that the order and distribution of  the
+Xexecuted  statements  should  not  be  changed,  there  are  still cases where
+Xoptimizing compilers may not generate code for some statements. To  a  certain
+Xdegree,  this  is  unavoidable  for  small synthetic benchmarks.  Users of the
+Xbenchmark are advised to check code listings whether code is generated for all
+Xstatements of Dhrystone.
+X
+XContrary to the suggestion in the published paper and its realization  in  the
+Xversions previously distributed, no attempt has been made to subtract the time
+Xfor the measurement loop overhead. (This calculation has proven  difficult  to
+Ximplement  in  a  correct  way,  and  its omission makes the program simpler.)
+XHowever, since the loop check is now part of the benchmark, this does have  an
+Ximpact  -  though a very minor one - on the distribution statistics which have
+Xbeen updated for this version.
+X
+X
+X3.  Discussion of Individual Changes
+X
+XIn this section, all changes are described that affect  the  measurement  loop
+Xand  that  are  not  just  renamings  of variables. All remarks refer to the C
+Xversion; the other language versions have been updated similarly.
+X
+XIn addition to adding  the  measurement  loop  and  the  printout  statements,
+Xchanges have been made at the following places:
+X
+Xo In procedure "main", three statements have been added  in  the  non-executed
+X  "then" part of the statement
+X
+X        if (Enum_Loc == Func_1 (Ch_Index, 'C'))
+X
+X  they are
+X
+X        strcpy (Str_2_Loc, "DHRYSTONE PROGRAM, 3'RD STRING");
+X        Int_2_Loc = Run_Index;
+X        Int_Glob = Run_Index;
+X
+X  The string assignment prevents  movement  of  the  preceding  assignment  to
+X  Str_2_Loc  (5'th  statement  of  "main")  out  of the measurement loop (This
+X  probably will not happen for the C version, but it did happen  with  another
+X  language   and  compiler.)   The  assignment  to  Int_2_Loc  prevents  value
+X  propagation for Int_2_Loc, and the assignment to Int_Glob makes the value of
+X  Int_Glob possibly dependent from the value of Run_Index.
+X
+Xo In the three arithmetic computations at the end of the measurement  loop  in
+X  "main  ",  the  role  of  some  variables has been exchanged, to prevent the
+X  division from just cancelling out the multiplication as it was  in  [1].   A
+X  very   smart  compiler  might  have  recognized  this  and  suppressed  code
+X  generation for the division.
+X
+Xo For Proc_2, no code has been changed, but the values of the actual parameter
+X  have changed due to changes in "main".
+X
+Xo In Proc_4, the second assignment has been changed from
+X
+X        Bool_Loc = Bool_Loc | Bool_Glob;
+X
+X  to
+X
+X        Bool_Glob = Bool_Loc | Bool_Glob;
+X
+X  It now assigns a value to a global variable  instead  of  a  local  variable
+X  (Bool_Loc);   Bool_Loc  would  be  a  "dead  variable"  which  is  not  used
+X  afterwards.
+X
+Xo In Func_1, the statement
+X
+X        Ch_1_Glob = Ch_1_Loc;
+X
+X  was added in the non-executed "else" part of the "if" statement, to  prevent
+X  the suppression of code generation for the assignment to Ch_1_Loc.
+X
+Xo In Func_2, the second character comparison statement has been changed to
+X
+X        if (Ch_Loc == 'R')
+X
+X  ('R' instead of 'X') because  a  comparison  with  'X'  is  implied  in  the
+X  preceding "if" statement.
+X
+X  Also in Func_2, the statement
+X
+X        Int_Glob = Int_Loc;
+X
+X  has been added in the non-executed part of the last "if" statement, in order
+X  to prevent Int_Loc from becoming a dead variable.
+X
+Xo In Func_3, a non-executed "else" part has been added to the "if"  statement.
+X  While  the  program  would  not be incorrect without this "else" part, it is
+X  considered bad programming practice if a function  can  be  left  without  a
+X  return value.
+X
+X  To compensate for this change, the (non-executed) "else" part  in  the  "if"
+X  statement of Proc_3 was removed.
+X
+XThe distribution statistics have been changed only  by  the  addition  of  the
+Xmeasurement loop iteration (1 additional statement, 4 additional local integer
+Xoperands) and by the change in Proc_4  (one  operand  changed  from  local  to
+Xglobal).  The distribution statistics in the comment headers have been updated
+Xaccordingly.
+X
+X
+X4.  String Operations
+X
+XThe string operations (string assignment and string comparison) have not  been
+Xchanged, to keep the program consistent with the original version.
+X
+XThere has been some concern that the string operations are over-represented in
+Xthe  program,  and that execution time is dominated by these operations.  This
+Xwas true in particular when optimizing compilers removed too much code in  the
+Xmain part of the program, this should have been mitigated in version 2.
+X
+XIt should be noted that this is a  language-dependent  issue:   Dhrystone  was
+Xfirst  published  in  Ada, and with Ada or Pascal semantics, the time spent in
+Xthe string operations is,  at  least  in  all  implementations  known  to  me,
+Xconsiderably smaller.  In Ada and Pascal, assignment and comparison of strings
+Xare operators defined in the language, and the upper  bounds  of  the  strings
+Xoccuring  in  Dhrystone  are part of the type information known at compilation
+Xtime.  The compilers can therefore generate  efficient  inline  code.   In  C,
+Xstring  assignemt  and comparisons are not part of the language, so the string
+Xoperations must be expressed in terms of the C library functions "strcpy"  and
+X"strcmp".   (ANSI  C  allows  an  implementation  to use inline code for these
+Xfunctions.)  In addition to the overhead caused by additional function  calls,
+Xthese  functions  are  defined for null-terminated strings where the length of
+Xthe strings is not known at compilation time; the function has to check  every
+Xbyte for the termination condition (the null byte).
+X
+XObviously, a C library which includes efficiently coded "strcpy" and  "strcmp"
+Xfunctions  helps to obtain good Dhrystone results. However, I don't think that
+Xthis is unfair since string  functions  do  occur  quite  frequently  in  real
+Xprograms  (editors, command interpreters, etc.).  If the strings functions are
+Ximplemented efficiently,  this  helps  real  programs  as  well  as  benchmark
+Xprograms.
+X
+XI admit that the  string  comparison  in  Dhrystone  terminates  later  (after
+Xscanning  20  characters)  than most string comparisons in real programs.  For
+Xconsistency with the original benchmark, I didn't change the  program  despite
+Xthis weakness.
+X
+X
+X5.  Intended Use of Dhrystone
+X
+XWhen Dhrystone is used, the following "ground rules" apply:
+X
+Xo Separate compilation (Ada and C versions)
+X
+X  As mentioned in [1], Dhrystone was written  to  reflect  actual  programming
+X  practice  in  systems  programming.   The  division into several compilation
+X  units (5 in the Ada version, 2 in the C version)  is  intended,  as  is  the
+X  distribution of inter-module and intra-module subprogram calls.  Although on
+X  many systems there will be no difference in execution time  to  a  Dhrystone
+X  version  where  all  compilation units are merged into one file, the rule is
+X  that separate compilation should  be  used.   The  intention  is  that  real
+X  programming  practice,  where  programs  consist  of  several  independently
+X  compiled units, should  be  reflected.   This  also  has  implies  that  the
+X  compiler,  while  compiling  one  unit,  has no information about the use of
+X  variables, register allocation etc.  occuring in  other  compilation  units.
+X  Although  in  real  life  compilation  units  will  probably  be larger, the
+X  intention is that these effects  of  separate  compilation  are  modeled  in
+X  Dhrystone.
+X
+X  A few language systems have post-linkage optimization available (e.g., final
+X  register allocation is performed after linkage).  This is a borderline case:
+X  Post-linkage  optimization  involves  additional  program  preparation  time
+X  (although  not  as  much  as  compilation in one unit) which may prevent its
+X  general use in practical programming.  I think that  since  it  defeats  the
+X  intentions given above, it should not be used for Dhrystone.
+X
+X  Unfortunately, ISO/ANSI  Pascal  does  not  contain  language  features  for
+X  separate  compilation.   Although  most  commercial Pascal compilers provide
+X  separate compilation in some way, we cannot use it for Dhrystone since  such
+X  a  version  would  not  be portable.  Therefore, no attempt has been made to
+X  provide a Pascal version with several compilation units.
+X
+Xo No procedure merging
+X
+X  Although Dhrystone contains some very short procedures where execution would
+X  benefit  from  procedure  merging (inlining, macro expansion of procedures),
+X  procedure merging is not to be used.  The reason is that the  percentage  of
+X  procedure  and  function  calls  is  part of the "Dhrystone distribution" of
+X  statements contained in [1].  This restriction does not hold for the  string
+X  functions  of  the  C  version  since ANSI C allows an implementation to use
+X  inline code for these functions.
+X
+Xo Other optimizations are allowed, but they should be indicated
+X
+X  It is often hard to draw an exact line between "normal code generation"  and
+X  "optimization"  in  compilers:  Some compilers perform operations by default
+X  that are invoked in other compilers only  when  optimization  is  explicitly
+X  requested.  Also, we cannot avoid that in benchmarking people try to achieve
+X  results that look as good as possible.  Therefore,  optimizations  performed
+X  by  compilers  -  other  than  those  listed  above - are not forbidden when
+X  Dhrystone execution times are measured.  Dhrystone is  not  intended  to  be
+X  non-optimizable  but  is  intended  to  be  similarly  optimizable as normal
+X  programs.   For  example,  there  are  several  places  in  Dhrystone  where
+X  performance   benefits   from   optimizations   like   common  subexpression
+X  elimination, value  propagation  etc.,  but  normal  programs  usually  also
+X  benefit  from  these  optimizations.   Therefore,  no  effort  was  made  to
+X  artificially  prevent  such  optimizations.   However,  measurement  reports
+X  should  indicate  which  compiler  optimization  levels  have been used, and
+X  reporting results with different levels of  compiler  optimization  for  the
+X  same hardware is encouraged.
+X
+Xo Default results are those without "register" declarations (C version)
+X
+X  When Dhrystone results are quoted  without  additional  qualification,  they
+X  should  be  understood  as  results  obtained  without use of the "register"
+X  attribute. Good compilers should be able to make good use of registers  even
+X  without explicit register declarations ([3], p. 193).
+X
+XOf course, for experimental  purposes,  post-linkage  optimization,  procedure
+Xmerging and/or compilation in one unit can be done to determine their effects.
+XHowever,  Dhrystone  numbers  obtained  under  these  conditions   should   be
+Xexplicitly  marked as such; "normal" Dhrystone results should be understood as
+Xresults obtained following the ground rules listed above.
+X
+XIn any case, for serious performance evaluation, users are advised to ask  for
+Xcode  listings  and  to  check  them carefully.  In this way, when results for
+Xdifferent systems are  compared,  the  reader  can  get  a  feeling  how  much
+Xperformance  difference is due to compiler optimization and how much is due to
+Xhardware speed.
+X
+X
+X6.  Acknowledgements
+X
+XThe C version 2.1 of Dhrystone has been developed  in  cooperation  with  Rick
+XRichardson  (Tinton  Falls,  NJ), it incorporates many ideas from the "Version
+X1.1" distributed previously by him over the UNIX network Usenet.  Through  his
+Xactivity with Usenet, Rick Richardson has made a very valuable contribution to
+Xthe dissemination of the benchmark.  I also thank  Chaim  Benedelac  (National
+XSemiconductor),  David Ditzel (SUN), Earl Killian and John Mashey (MIPS), Alan
+XSmith and Rafael  Saavedra-Barrera  (UC  at  Berkeley)  for  their  help  with
+Xcomments on earlier versions of the benchmark.
+X
+X
+X7.  Bibliography
+X
+X[1]
+X   Reinhold P. Weicker: Dhrystone: A Synthetic Systems Programming Benchmark.
+X   Communications of the ACM 27, 10 (Oct. 1984), 1013-1030
+X
+X[2]
+X   Rick Richardson: Dhrystone 1.1 Benchmark Summary (and Program Text)
+X   Informal Distribution via "Usenet", Last Version Known  to  me:  Sept.  21,
+X   1987
+X
+X[3]
+X   Brian W. Kernighan and Dennis M. Ritchie:  The C Programming Language.
+X   Prentice-Hall, Englewood Cliffs (NJ) 1978
+X
+END_OF_RATIONALE
+if test 18793 -ne `wc -c <RATIONALE`; then
+    echo shar: \"RATIONALE\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f README -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"README\"
+else
+echo shar: Extracting \"README\" \(2308 characters\)
+sed "s/^X//" >README <<'END_OF_README'
+XThis floppy disk contains the source code of the Dhrystone benchmark
+X(version 2.1) in three languages:
+X
+XFiles containing the Ada version (*.s: Specifications, *.b: Bodies):
+X
+X  d_global.s
+X  d_main.b
+X  d_pack_1.b
+X  d_pack_1.s
+X  d_pack_2.b
+X  d_pack_2.s
+X
+X  (The file names have been abbreviated to 8 characters plus extension
+X   for MS-DOS)
+X
+XFiles containing the C version (*.h: Header File, *.c: C Modules)
+X
+X  dhry.h
+X  dhry_1.c
+X  dhry_2.c
+X  
+XFile containing the Pascal version:
+X
+X  dhry.p
+X
+XThe file RATIONALE contains the article 
+X
+X  "Dhrystone Benchmark: Rationale for Version 2 and Measurement Rules"
+X
+Xwhich has been published, together with the C source code (Version 2.0),
+Xin SIGPLAN Notices vol. 23, no. 8 (Aug. 1988), pp. 49-62.
+XThis article explains all changes that have been made for Version 2,
+Xcompared with the version of the original publication
+Xin Communications of the ACM vol. 27, no. 10 (Oct. 1984), pp. 1013-1030.
+XIt also contains "ground rules" for benchmarking with Dhrystone
+Xwhich should be followed by everyone who uses the program and publishes
+XDhrystone results.
+X
+XCompared with the Version 2.0 published in SIGPLAN Notices, Version 2.1
+Xcontains a few corrections that have been made after Version 2.0 was
+Xdistriobuted over the UNIX network Usenet. These small differences between
+XVersion 2.0 and 2.1 should not affect execution time measurements.
+XFor those who want to compare the exact contents of both versions,
+Xthe file "dhry_c.dif" contains the differences between the two versions,
+Xas generated by a file comparison of the corresponding files with the
+XUNIX utility "diff".
+X
+XRecipients of this floppy disk who perform measurements are asked
+Xto send measurement results to the author and/or to Rick Richardson.
+XRick Richardson publishes regularly Dhrystone results on the UNIX network
+XUsenet. For submissions of results to him (preferably by electronic mail,
+Xsee address in the program header), he has provided a form which is contained
+Xin the file "submit.frm".
+X
+XAugust 17, 1988
+X
+X                 Reinhold P. Weicker
+X                 Siemens AG, E STE 35
+X                 Postfach 3240
+X                 D-8520 Erlangen
+X                 Germany (West)
+X
+X                 Phone:  [xxx-49]-9131-7-20330  (8-17 Central European Time)
+X                 Usenet: ..!mcvax!unido!estevax!weicker
+END_OF_README
+if test 2308 -ne `wc -c <README`; then
+    echo shar: \"README\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f README.RER -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"README.RER\"
+else
+echo shar: Extracting \"README.RER\" \(4419 characters\)
+sed "s/^X//" >README.RER <<'END_OF_README.RER'
+X12/04/88
+X
+XHere is Reinhold Weicker's DHRYSTONE 2.1 benchmark, slightly modified
+Xby me for instrumentation purposes only.  This is an integer CPU
+Xbenchmark.  The differences between 2.0 and 2.1 are minor, and
+XI believe that 2.0 and 2.1 results are comparable.
+X
+XFor purists, I've enclosed context diffs to turn what I'm posting
+Xas 2.1 back into what Reinhold sent me as 2.1.  The changes
+Xare in pure2_1.dif.  As you can see, it is only the instrumentation
+Xthat is slightly different.
+X
+XBoth the C and the Pascal versions are here.  The Ada version I
+Xhave is marked preliminary (not to be posted).
+X
+XI've enclosed a new submission form (note new address for mailings).
+XPlease deluge this mailbox (..!uunet!pcrat!dry2) with your results.
+XI'll summarize and repost when the dust clears.  Please do not
+Xassume that I will pull posted results off of the net (I won't, its
+Xtoo much work).
+X
+XI've attempted to include a Makefile for UNIX and Microsoft C (with ndmake).
+XPay particular attention to the HZ parameter, even though your power may
+Xbe 50 or 60 hertz, your computer may not be.  You may have to ask someone,
+Xread the manual, or check:
+X	/usr/include/sys/param.h
+X	/usr/include/limits.h		(CLK_TCK==HZ)
+Xfor this information.
+X
+XREPEAT: HZ IS NOT NECESSARILY THE FREQUENCY OF YOUR AC POWER !!!!!!
+X
+XThere are two versions to run, one with register variables, and one
+Xwithout.  Please let the benchmark run for 30,000 loops on sixteen
+Xbit machines, and for much longer (a minute or two) on faster machines.
+XPlease note that "time(2)" has a resolution of 1 second, and may give
+Xvariable results.  No matter how time is measured, a sanity check with
+Xa stopwatch is prudent.  We've run into systems that lie about time,
+Xand there is always the configuration error problem.  When it comes
+Xto time measurement on UNIX, there is no widely adhered to standard.
+X
+XFor segmented architectures, it is appropriate to submit results for
+Xall memory models, as shown below.
+X
+XI dropped the CODESIZE information that I attempted to add the last
+Xtime I posted this.  People couldn't follow directions, and the
+Xinformation wasn't very useful anyway.
+X
+XHere's a sample submission of results:
+X
+XDHRYSTONE 2.1 BENCHMARK REPORTING FORM
+XMANUF: IBM
+XMODEL: PC/AT
+XPROC: 80286
+XCLOCK: 8
+XOS: Venix
+XOVERSION: SVr2.3
+XCOMPILER: AT&T cc
+XCVERSION: 11/8/84
+XOPTIONS: -O
+XNOREG: 1450
+XREG: 1450
+XNOTES: HZ=60; Small Model
+XDATE: 03/04/88
+XSUBMITTER: pcrat!rick (Rick Richardson)
+XMAILTO: uunet!pcrat!dry2
+X
+XDHRYSTONE 2.1 BENCHMARK REPORTING FORM
+XMANUF: IBM
+XMODEL: PC/AT
+XPROC: 80286
+XCLOCK: 8
+XOS: Venix
+XOVERSION: SVr2.3
+XCOMPILER: AT&T cc
+XCVERSION: 11/8/84
+XOPTIONS: -O -Ml
+XNOREG: 1043
+XREG: 1043
+XNOTES: HZ=60; Large Model
+XDATE: 03/04/88
+XSUBMITTER: pcrat!rick (Rick Richardson)
+XMAILTO: uunet!pcrat!dry2
+X
+XThe program that processes submission forms is rather dumb.  Please
+Xdo not change the order, add or removes lines in the form.  If your
+XNOTES are longer than the space provided, then they are too long for
+Xthe summary.  Keep it terse, please.
+X
+XA form consists of all lines between:
+X	DHRYSTONE 2.1 BENCHMARK REPORTING FORM
+Xand
+X	MAILTO: uunet!pcrat!dry2
+Xboth lines must be present for the form to be processed.  If
+Xa field does not apply or is not known, leave it blank.  The fields
+Xare:
+X	MANUF:	Computer manufacturer, e.g. AT&T, IBM
+X	MODEL:	Model number of computer
+X	PROC:	If a microprocessor CPU, the part number, e.g. 68030
+X	CLOCK:	Clock in Mhz, if known.  Numeric only, e.g. 16.67
+X	OS:	Operating system, e.g. UNIX
+X	OVERSION: OS version, e.g. SVR3
+X	COMPILER: Compiler name, e.g. cc, Microsoft, or Green Hills
+X	CVERSION: Compiler version, e.g. 5.10
+X	OPTIONS: Relevant compiler options, e.g. -O3
+X	NOREG:	Dhrystones/second, no register attribute
+X	REG:	Dhrystones/second, with register attribute
+X	NOTES:	Additional, terse comments on one line
+X	DATE:	Date of test, US format MM/DD/YY
+X	SUBMITTER: uucp or domain address (full name)
+X
+X
+XHZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ
+X
+XPlease, if you are using times(2) to measure time, indicate
+Xthe HZ value you used in the NOTES field.  Something like this is OK:
+X
+X	NOTES: HZ=100; no inlining...
+X
+XHZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ HZ
+X
+X--
+X		Rick Richardson, President, PC Research, Inc.
+X
+X(201) 542-3734 (voice, nights)   OR     (201) 389-8963 (voice, days)
+Xuunet!pcrat!rick (UUCP)			rick%pcrat.u...@uunet.uu.net (INTERNET)
+X		uunet!pcrat!dry2   (Dhrystone submission forms only)
+END_OF_README.RER
+if test 4419 -ne `wc -c <README.RER`; then
+    echo shar: \"README.RER\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f clarify.doc -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"clarify.doc\"
+else
+echo shar: Extracting \"clarify.doc\" \(3195 characters\)
+sed "s/^X//" >clarify.doc <<'END_OF_clarify.doc'
+XCLARIFICATION
+XThere seems to have been a great deal of confusion over what this
+Xbenchmark measures, and how to use these results.  Let me try to clarify
+Xthis:
+X
+X	1) DHRYSTONE is a measure of processor+compiler efficiency in
+X	   executing a 'typical' program.  The 'typical' program was
+X	   designed by measuring statistics on a great number of
+X	   'real' programs.  The 'typical' program was then written
+X	   by Reinhold P. Weicker using these statistics.  The
+X	   program is balanced according to statement type, as well
+X	   as data type.
+X
+X	2) DHRYSTONE does not use floating point.  Typical programs don't.
+X
+X	3) DHRYSTONE does not do I/O.  Typical programs do, but then
+X	   we'd have a whole can of worms opened up.
+X
+X	4) DHRYSTONE does not contain much code that can be optimized
+X	   by vector processors.  That is why a CRAY doesn't look real
+X	   fast, they weren't built to do this sort of computing.
+X
+X	5) DHRYSTONE does not measure OS performance, as it avoids
+X	   calling the O.S.  The O.S. is indicated in the results only
+X	   to help in identifying the compiler technology.
+X
+X	6) DHRYSTONE is not perfect, but is a hell of a lot better than
+X	   the "sieve", or "SI".
+X
+X	7) DHRYSTONE gives results in dhrystones/second.  Bigger
+X	   numbers are better.  As a baseline, the original IBM PC
+X	   gives around 300-400 dhrystones/second with a good compiler.
+X	   The fastest machines today are approaching 100,000.
+X
+XIf somebody asked me to pick out the best machine for the money, I
+Xwouldn't look at just the results of DHRYSTONE.  I'd probably:
+X
+X	1) Run DHRYSTONE to get a feel for the compiler+processor
+X	   speed.
+X	2) Run any number of benchmarks to check disk I/O bandwidth,
+X	   using both sequential and random read/writes.
+X	3) Run a multitasking benchmark to check multi-user response
+X	   time.  Typically, these benchmarks run several types of
+X	   programs such as editors, shell scripts, sorts, compiles,
+X	   and plot the results against the number of simulated users.
+X	4) If appropriate for the intended use, run something like
+X	   WHETSTONE, to determine floating point performance.
+X	5) If appropriate for intended use, run some programs which do
+X	   vector and matrix computations.
+X	6) Figure out what the box will:
+X		- cost to buy
+X		- cost to operate and maintain
+X		- be worth when it is sold
+X		- be worth if the manufacturer goes out of business
+X	7) Having done the above, I probably have a hand-full of
+X	   machines which meet my price/performance requirements.
+X	   Now, I find out if the applications programs I'd like
+X	   to use will run on any of these machines.  I also find
+X	   out how much interest people have in writing new software
+X	   for the machine, and look carefully at the migration path
+X	   I will have to take when I reach the (inevitable) limits
+X	   of the machine.
+X
+XTo summarize, DHRYSTONES by themselves are not anything more than
+Xa way to win free beers when arguing 'Box-A versus Box-B' religion.
+XThey do provide insight into Box-A/Compiler-A versus Box-A/Compiler-B
+Xcomparisons.
+X
+X			Rick Richardson
+X			PC Research, Inc.
+X			(201) 389-8963 (9-17 EST)
+X			(201) 542-3734 (7-9,17-24 EST)
+X			...!uunet!pcrat!rick	(normal mail)
+X			...!uunet!pcrat!dry2	(results only)
+END_OF_clarify.doc
+if test 3195 -ne `wc -c <clarify.doc`; then
+    echo shar: \"clarify.doc\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f pure2_1.dif -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"pure2_1.dif\"
+else
+echo shar: Extracting \"pure2_1.dif\" \(3590 characters\)
+sed "s/^X//" >pure2_1.dif <<'END_OF_pure2_1.dif'
+X*** rer/dhry.h	Sun Dec  4 00:08:26 1988
+X--- weicker/dhry.h	Sun Dec  4 00:09:00 1988
+X***************
+X*** 38,45
+X   *              PC Research. Inc.
+X   *              94 Apple Orchard Drive
+X   *              Tinton Falls, NJ 07724
+X!  *                      Phone:  (201) 389-8963 (9-17 EST)               
+X!  *                      Usenet: ...!uunet!pcrat!rick
+X   *
+X   *      Please send results to Rick Richardson and/or Reinhold Weicker.
+X   *      Complete information should be given on hardware and software used.
+X
+X--- 38,45 -----
+X   *              PC Research. Inc.
+X   *              94 Apple Orchard Drive
+X   *              Tinton Falls, NJ 07724
+X!  *                      Phone:  (201) 834-1378 (9-17 EST)               
+X!  *                      Usenet: ...!seismo!uunet!pcrat!rick
+X   *
+X   *      Please send results to Rick Richardson and/or Reinhold Weicker.
+X   *      Complete information should be given on hardware and software used.
+X***************
+X*** 348,354
+X  /* Compiler and system dependent definitions: */
+X  
+X  #ifndef TIME
+X- #undef TIMES
+X  #define TIMES
+X  #endif
+X                  /* Use times(2) time function unless    */
+X
+X--- 348,353 -----
+X  /* Compiler and system dependent definitions: */
+X  
+X  #ifndef TIME
+X  #define TIMES
+X  #endif
+X                  /* Use times(2) time function unless    */
+X***************
+X*** 353,366
+X  #endif
+X                  /* Use times(2) time function unless    */
+X                  /* explicitly defined otherwise         */
+X- 
+X- #ifdef MSC_CLOCK
+X- #undef HZ
+X- #undef TIMES
+X- #include <time.h>
+X- #define HZ	CLK_TCK
+X- #endif
+X- 		/* Use Microsoft C hi-res clock */
+X  
+X  #ifdef TIMES
+X  #include <sys/types.h>
+X
+X--- 352,357 -----
+X  #endif
+X                  /* Use times(2) time function unless    */
+X                  /* explicitly defined otherwise         */
+X  
+X  #ifdef TIMES
+X  #include <sys/types.h>
+X*** rer/dhry_1.c	Sun Dec  4 00:08:36 1988
+X--- weicker/dhry_1.c	Sun Dec  4 00:09:09 1988
+X***************
+X*** 47,53
+X  struct tms      time_info;
+X  extern  int     times ();
+X                  /* see library function "times" */
+X! #define Too_Small_Time (2*HZ)
+X                  /* Measurements should last at least about 2 seconds */
+X  #endif
+X  #ifdef TIME
+X
+X--- 47,53 -----
+X  struct tms      time_info;
+X  extern  int     times ();
+X                  /* see library function "times" */
+X! #define Too_Small_Time 120
+X                  /* Measurements should last at least about 2 seconds */
+X  #endif
+X  #ifdef TIME
+X***************
+X*** 56,65
+X  #define Too_Small_Time 2
+X                  /* Measurements should last at least 2 seconds */
+X  #endif
+X- #ifdef MSC_CLOCK
+X- extern clock_t	clock();
+X- #define Too_Small_Time (2*HZ)
+X- #endif
+X  
+X  long            Begin_Time,
+X                  End_Time,
+X
+X--- 56,61 -----
+X  #define Too_Small_Time 2
+X                  /* Measurements should last at least 2 seconds */
+X  #endif
+X  
+X  long            Begin_Time,
+X                  End_Time,
+X***************
+X*** 139,147
+X  #ifdef TIME
+X    Begin_Time = time ( (long *) 0);
+X  #endif
+X- #ifdef MSC_CLOCK
+X-   Begin_Time = clock();
+X- #endif
+X  
+X    for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
+X    {
+X
+X--- 135,140 -----
+X  #ifdef TIME
+X    Begin_Time = time ( (long *) 0);
+X  #endif
+X  
+X    for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
+X    {
+X***************
+X*** 199,207
+X  #endif
+X  #ifdef TIME
+X    End_Time = time ( (long *) 0);
+X- #endif
+X- #ifdef MSC_CLOCK
+X-   End_Time = clock();
+X  #endif
+X  
+X    printf ("Execution ends\n");
+X
+X--- 192,197 -----
+X  #endif
+X  #ifdef TIME
+X    End_Time = time ( (long *) 0);
+X  #endif
+X  
+X    printf ("Execution ends\n");
+END_OF_pure2_1.dif
+if test 3590 -ne `wc -c <pure2_1.dif`; then
+    echo shar: \"pure2_1.dif\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f submit.frm -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"submit.frm\"
+else
+echo shar: Extracting \"submit.frm\" \(170 characters\)
+sed "s/^X//" >submit.frm <<'END_OF_submit.frm'
+XDHRYSTONE 2.1 BENCHMARK REPORTING FORM
+XMANUF:
+XMODEL:
+XPROC:
+XCLOCK:
+XOS:
+XOVERSION:
+XCOMPILER:
+XCVERSION:
+XOPTIONS:
+XNOREG:
+XREG:
+XNOTES:
+XDATE:
+XSUBMITTER:
+XMAILTO: uunet!pcrat!dry2
+END_OF_submit.frm
+if test 170 -ne `wc -c <submit.frm`; then
+    echo shar: \"submit.frm\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+echo shar: End of shell archive.
+exit 0

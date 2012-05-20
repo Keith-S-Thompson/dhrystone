@@ -1,0 +1,17 @@
+Extracted from a series of articles posted to net.sources, probably
+by Reinhold P. Weicker, 1984-11-15.  See user-guide.txt for details.
+
+dhry-ref-all.a
+    Ada reference version
+dhry-mea.p
+    Pascal "Measurement Version"
+dhry-mea-all.c
+    C "Measurement Version"
+
+global_def.ads
+main.adb
+pack_1.adb
+pack_1.ads
+pack_2.adb
+pack_2.ads
+    Result of "gnatchop dhry-ref-all.a"

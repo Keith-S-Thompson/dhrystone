@@ -1,0 +1,787 @@
+Path: gmdzi!unido!mcsun!tuvie!inst182
+From: inst182@tuvie (Inst.f.Techn.Informatik)
+Newsgroups: alt.sources
+Subject: dhrystone benchmark (Part 4)
+Message-ID: <1104@tuvie>
+Date: 14 Feb 90 17:43:45 GMT
+Organization: TU Vienna EDP-Center, Vienna, AUSTRIA
+Lines: 777
+Posted: Wed Feb 14 18:43:45 1990
+
+
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create:
+#	dhry_1.c
+#	dhry_2.c
+#	dhry_c.dif
+# This archive created: Wed Feb 14 19:33:18 1990
+export PATH; PATH=/bin:/usr/bin:$PATH
+echo shar: "extracting 'dhry_1.c'" '(11857 characters)'
+if test -f 'dhry_1.c'
+then
+	echo shar: "will not over-write existing file 'dhry_1.c'"
+else
+sed 's/^X//' << \SHAR_EOF > 'dhry_1.c'
+X/*
+X ****************************************************************************
+X *
+X *                   "DHRYSTONE" Benchmark Program
+X *                   -----------------------------
+X *                                                                            
+X *  Version:    C, Version 2.1
+X *                                                                            
+X *  File:       dhry_1.c (part 2 of 3)
+X *
+X *  Date:       May 25, 1988
+X *
+X *  Author:     Reinhold P. Weicker
+X *
+X ****************************************************************************
+X */
+X
+X#include "dhry.h"
+X
+X/* Global Variables: */
+X
+XRec_Pointer     Ptr_Glob,
+X                Next_Ptr_Glob;
+Xint             Int_Glob;
+XBoolean         Bool_Glob;
+Xchar            Ch_1_Glob,
+X                Ch_2_Glob;
+Xint             Arr_1_Glob [50];
+Xint             Arr_2_Glob [50] [50];
+X
+Xextern char     *malloc ();
+XEnumeration     Func_1 ();
+X  /* forward declaration necessary since Enumeration may not simply be int */
+X
+X#ifndef REG
+X        Boolean Reg = false;
+X#define REG
+X        /* REG becomes defined as empty */
+X        /* i.e. no register variables   */
+X#else
+X        Boolean Reg = true;
+X#endif
+X
+X/* variables for time measurement: */
+X
+X#ifdef TIMES
+Xstruct tms      time_info;
+Xextern  int     times ();
+X                /* see library function "times" */
+X#define Too_Small_Time (2*HZ)
+X                /* Measurements should last at least about 2 seconds */
+X#endif
+X#ifdef TIME
+Xextern long     time();
+X                /* see library function "time"  */
+X#define Too_Small_Time 2
+X                /* Measurements should last at least 2 seconds */
+X#endif
+X#ifdef MSC_CLOCK
+Xextern clock_t	clock();
+X#define Too_Small_Time (2*HZ)
+X#endif
+X
+Xlong            Begin_Time,
+X                End_Time,
+X                User_Time;
+Xfloat           Microseconds,
+X                Dhrystones_Per_Second;
+X
+X/* end of variables for time measurement */
+X
+X
+Xmain ()
+X/*****/
+X
+X  /* main program, corresponds to procedures        */
+X  /* Main and Proc_0 in the Ada version             */
+X{
+X        One_Fifty       Int_1_Loc;
+X  REG   One_Fifty       Int_2_Loc;
+X        One_Fifty       Int_3_Loc;
+X  REG   char            Ch_Index;
+X        Enumeration     Enum_Loc;
+X        Str_30          Str_1_Loc;
+X        Str_30          Str_2_Loc;
+X  REG   int             Run_Index;
+X  REG   int             Number_Of_Runs;
+X
+X  /* Initializations */
+X
+X  Next_Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
+X  Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
+X
+X  Ptr_Glob->Ptr_Comp                    = Next_Ptr_Glob;
+X  Ptr_Glob->Discr                       = Ident_1;
+X  Ptr_Glob->variant.var_1.Enum_Comp     = Ident_3;
+X  Ptr_Glob->variant.var_1.Int_Comp      = 40;
+X  strcpy (Ptr_Glob->variant.var_1.Str_Comp, 
+X          "DHRYSTONE PROGRAM, SOME STRING");
+X  strcpy (Str_1_Loc, "DHRYSTONE PROGRAM, 1'ST STRING");
+X
+X  Arr_2_Glob [8][7] = 10;
+X        /* Was missing in published program. Without this statement,    */
+X        /* Arr_2_Glob [8][7] would have an undefined value.             */
+X        /* Warning: With 16-Bit processors and Number_Of_Runs > 32000,  */
+X        /* overflow may occur for this array element.                   */
+X
+X  printf ("\n");
+X  printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
+X  printf ("\n");
+X  if (Reg)
+X  {
+X    printf ("Program compiled with 'register' attribute\n");
+X    printf ("\n");
+X  }
+X  else
+X  {
+X    printf ("Program compiled without 'register' attribute\n");
+X    printf ("\n");
+X  }
+X  printf ("Please give the number of runs through the benchmark: ");
+X  {
+X    int n;
+X    scanf ("%d", &n);
+X    Number_Of_Runs = n;
+X  }
+X  printf ("\n");
+X
+X  printf ("Execution starts, %d runs through Dhrystone\n", Number_Of_Runs);
+X
+X  /***************/
+X  /* Start timer */
+X  /***************/
+X 
+X#ifdef TIMES
+X  times (&time_info);
+X  Begin_Time = (long) time_info.tms_utime;
+X#endif
+X#ifdef TIME
+X  Begin_Time = time ( (long *) 0);
+X#endif
+X#ifdef MSC_CLOCK
+X  Begin_Time = clock();
+X#endif
+X
+X  for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
+X  {
+X
+X    Proc_5();
+X    Proc_4();
+X      /* Ch_1_Glob == 'A', Ch_2_Glob == 'B', Bool_Glob == true */
+X    Int_1_Loc = 2;
+X    Int_2_Loc = 3;
+X    strcpy (Str_2_Loc, "DHRYSTONE PROGRAM, 2'ND STRING");
+X    Enum_Loc = Ident_2;
+X    Bool_Glob = ! Func_2 (Str_1_Loc, Str_2_Loc);
+X      /* Bool_Glob == 1 */
+X    while (Int_1_Loc < Int_2_Loc)  /* loop body executed once */
+X    {
+X      Int_3_Loc = 5 * Int_1_Loc - Int_2_Loc;
+X        /* Int_3_Loc == 7 */
+X      Proc_7 (Int_1_Loc, Int_2_Loc, &Int_3_Loc);
+X        /* Int_3_Loc == 7 */
+X      Int_1_Loc += 1;
+X    } /* while */
+X      /* Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7 */
+X    Proc_8 (Arr_1_Glob, Arr_2_Glob, Int_1_Loc, Int_3_Loc);
+X      /* Int_Glob == 5 */
+X    Proc_1 (Ptr_Glob);
+X    for (Ch_Index = 'A'; Ch_Index <= Ch_2_Glob; ++Ch_Index)
+X                             /* loop body executed twice */
+X    {
+X      if (Enum_Loc == Func_1 (Ch_Index, 'C'))
+X          /* then, not executed */
+X        {
+X        Proc_6 (Ident_1, &Enum_Loc);
+X        strcpy (Str_2_Loc, "DHRYSTONE PROGRAM, 3'RD STRING");
+X        Int_2_Loc = Run_Index;
+X        Int_Glob = Run_Index;
+X        }
+X    }
+X      /* Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7 */
+X    Int_2_Loc = Int_2_Loc * Int_1_Loc;
+X    Int_1_Loc = Int_2_Loc / Int_3_Loc;
+X    Int_2_Loc = 7 * (Int_2_Loc - Int_3_Loc) - Int_1_Loc;
+X      /* Int_1_Loc == 1, Int_2_Loc == 13, Int_3_Loc == 7 */
+X    Proc_2 (&Int_1_Loc);
+X      /* Int_1_Loc == 5 */
+X
+X  } /* loop "for Run_Index" */
+X
+X  /**************/
+X  /* Stop timer */
+X  /**************/
+X  
+X#ifdef TIMES
+X  times (&time_info);
+X  End_Time = (long) time_info.tms_utime;
+X#endif
+X#ifdef TIME
+X  End_Time = time ( (long *) 0);
+X#endif
+X#ifdef MSC_CLOCK
+X  End_Time = clock();
+X#endif
+X
+X  printf ("Execution ends\n");
+X  printf ("\n");
+X  printf ("Final values of the variables used in the benchmark:\n");
+X  printf ("\n");
+X  printf ("Int_Glob:            %d\n", Int_Glob);
+X  printf ("        should be:   %d\n", 5);
+X  printf ("Bool_Glob:           %d\n", Bool_Glob);
+X  printf ("        should be:   %d\n", 1);
+X  printf ("Ch_1_Glob:           %c\n", Ch_1_Glob);
+X  printf ("        should be:   %c\n", 'A');
+X  printf ("Ch_2_Glob:           %c\n", Ch_2_Glob);
+X  printf ("        should be:   %c\n", 'B');
+X  printf ("Arr_1_Glob[8]:       %d\n", Arr_1_Glob[8]);
+X  printf ("        should be:   %d\n", 7);
+X  printf ("Arr_2_Glob[8][7]:    %d\n", Arr_2_Glob[8][7]);
+X  printf ("        should be:   Number_Of_Runs + 10\n");
+X  printf ("Ptr_Glob->\n");
+X  printf ("  Ptr_Comp:          %d\n", (int) Ptr_Glob->Ptr_Comp);
+X  printf ("        should be:   (implementation-dependent)\n");
+X  printf ("  Discr:             %d\n", Ptr_Glob->Discr);
+X  printf ("        should be:   %d\n", 0);
+X  printf ("  Enum_Comp:         %d\n", Ptr_Glob->variant.var_1.Enum_Comp);
+X  printf ("        should be:   %d\n", 2);
+X  printf ("  Int_Comp:          %d\n", Ptr_Glob->variant.var_1.Int_Comp);
+X  printf ("        should be:   %d\n", 17);
+X  printf ("  Str_Comp:          %s\n", Ptr_Glob->variant.var_1.Str_Comp);
+X  printf ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
+X  printf ("Next_Ptr_Glob->\n");
+X  printf ("  Ptr_Comp:          %d\n", (int) Next_Ptr_Glob->Ptr_Comp);
+X  printf ("        should be:   (implementation-dependent), same as above\n");
+X  printf ("  Discr:             %d\n", Next_Ptr_Glob->Discr);
+X  printf ("        should be:   %d\n", 0);
+X  printf ("  Enum_Comp:         %d\n", Next_Ptr_Glob->variant.var_1.Enum_Comp);
+X  printf ("        should be:   %d\n", 1);
+X  printf ("  Int_Comp:          %d\n", Next_Ptr_Glob->variant.var_1.Int_Comp);
+X  printf ("        should be:   %d\n", 18);
+X  printf ("  Str_Comp:          %s\n",
+X                                Next_Ptr_Glob->variant.var_1.Str_Comp);
+X  printf ("        should be:   DHRYSTONE PROGRAM, SOME STRING\n");
+X  printf ("Int_1_Loc:           %d\n", Int_1_Loc);
+X  printf ("        should be:   %d\n", 5);
+X  printf ("Int_2_Loc:           %d\n", Int_2_Loc);
+X  printf ("        should be:   %d\n", 13);
+X  printf ("Int_3_Loc:           %d\n", Int_3_Loc);
+X  printf ("        should be:   %d\n", 7);
+X  printf ("Enum_Loc:            %d\n", Enum_Loc);
+X  printf ("        should be:   %d\n", 1);
+X  printf ("Str_1_Loc:           %s\n", Str_1_Loc);
+X  printf ("        should be:   DHRYSTONE PROGRAM, 1'ST STRING\n");
+X  printf ("Str_2_Loc:           %s\n", Str_2_Loc);
+X  printf ("        should be:   DHRYSTONE PROGRAM, 2'ND STRING\n");
+X  printf ("\n");
+X
+X  User_Time = End_Time - Begin_Time;
+X
+X  if (User_Time < Too_Small_Time)
+X  {
+X    printf ("Measured time too small to obtain meaningful results\n");
+X    printf ("Please increase number of runs\n");
+X    printf ("\n");
+X  }
+X  else
+X  {
+X#ifdef TIME
+X    Microseconds = (float) User_Time * Mic_secs_Per_Second 
+X                        / (float) Number_Of_Runs;
+X    Dhrystones_Per_Second = (float) Number_Of_Runs / (float) User_Time;
+X#else
+X    Microseconds = (float) User_Time * Mic_secs_Per_Second 
+X                        / ((float) HZ * ((float) Number_Of_Runs));
+X    Dhrystones_Per_Second = ((float) HZ * (float) Number_Of_Runs)
+X                        / (float) User_Time;
+X#endif
+X    printf ("Microseconds for one run through Dhrystone: ");
+X    printf ("%6.1f \n", Microseconds);
+X    printf ("Dhrystones per Second:                      ");
+X    printf ("%6.1f \n", Dhrystones_Per_Second);
+X    printf ("\n");
+X  }
+X  
+X}
+X
+X
+XProc_1 (Ptr_Val_Par)
+X/******************/
+X
+XREG Rec_Pointer Ptr_Val_Par;
+X    /* executed once */
+X{
+X  REG Rec_Pointer Next_Record = Ptr_Val_Par->Ptr_Comp;  
+X                                        /* == Ptr_Glob_Next */
+X  /* Local variable, initialized with Ptr_Val_Par->Ptr_Comp,    */
+X  /* corresponds to "rename" in Ada, "with" in Pascal           */
+X  
+X  structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob); 
+X  Ptr_Val_Par->variant.var_1.Int_Comp = 5;
+X  Next_Record->variant.var_1.Int_Comp 
+X        = Ptr_Val_Par->variant.var_1.Int_Comp;
+X  Next_Record->Ptr_Comp = Ptr_Val_Par->Ptr_Comp;
+X  Proc_3 (&Next_Record->Ptr_Comp);
+X    /* Ptr_Val_Par->Ptr_Comp->Ptr_Comp 
+X                        == Ptr_Glob->Ptr_Comp */
+X  if (Next_Record->Discr == Ident_1)
+X    /* then, executed */
+X  {
+X    Next_Record->variant.var_1.Int_Comp = 6;
+X    Proc_6 (Ptr_Val_Par->variant.var_1.Enum_Comp, 
+X           &Next_Record->variant.var_1.Enum_Comp);
+X    Next_Record->Ptr_Comp = Ptr_Glob->Ptr_Comp;
+X    Proc_7 (Next_Record->variant.var_1.Int_Comp, 10, 
+X           &Next_Record->variant.var_1.Int_Comp);
+X  }
+X  else /* not executed */
+X    structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
+X} /* Proc_1 */
+X
+X
+XProc_2 (Int_Par_Ref)
+X/******************/
+X    /* executed once */
+X    /* *Int_Par_Ref == 1, becomes 4 */
+X
+XOne_Fifty   *Int_Par_Ref;
+X{
+X  One_Fifty  Int_Loc;  
+X  Enumeration   Enum_Loc;
+X
+X  Int_Loc = *Int_Par_Ref + 10;
+X  do /* executed once */
+X    if (Ch_1_Glob == 'A')
+X      /* then, executed */
+X    {
+X      Int_Loc -= 1;
+X      *Int_Par_Ref = Int_Loc - Int_Glob;
+X      Enum_Loc = Ident_1;
+X    } /* if */
+X  while (Enum_Loc != Ident_1); /* true */
+X} /* Proc_2 */
+X
+X
+XProc_3 (Ptr_Ref_Par)
+X/******************/
+X    /* executed once */
+X    /* Ptr_Ref_Par becomes Ptr_Glob */
+X
+XRec_Pointer *Ptr_Ref_Par;
+X
+X{
+X  if (Ptr_Glob != Null)
+X    /* then, executed */
+X    *Ptr_Ref_Par = Ptr_Glob->Ptr_Comp;
+X  Proc_7 (10, Int_Glob, &Ptr_Glob->variant.var_1.Int_Comp);
+X} /* Proc_3 */
+X
+X
+XProc_4 () /* without parameters */
+X/*******/
+X    /* executed once */
+X{
+X  Boolean Bool_Loc;
+X
+X  Bool_Loc = Ch_1_Glob == 'A';
+X  Bool_Glob = Bool_Loc | Bool_Glob;
+X  Ch_2_Glob = 'B';
+X} /* Proc_4 */
+X
+X
+XProc_5 () /* without parameters */
+X/*******/
+X    /* executed once */
+X{
+X  Ch_1_Glob = 'A';
+X  Bool_Glob = false;
+X} /* Proc_5 */
+X
+X
+X        /* Procedure for the assignment of structures,          */
+X        /* if the C compiler doesn't support this feature       */
+X#ifdef  NOSTRUCTASSIGN
+Xmemcpy (d, s, l)
+Xregister char   *d;
+Xregister char   *s;
+Xregister int    l;
+X{
+X        while (l--) *d++ = *s++;
+X}
+X#endif
+X
+X
+SHAR_EOF
+if test 11857 -ne "`wc -c < 'dhry_1.c'`"
+then
+	echo shar: "error transmitting 'dhry_1.c'" '(should have been 11857 characters)'
+fi
+fi
+echo shar: "extracting 'dhry_2.c'" '(5273 characters)'
+if test -f 'dhry_2.c'
+then
+	echo shar: "will not over-write existing file 'dhry_2.c'"
+else
+sed 's/^X//' << \SHAR_EOF > 'dhry_2.c'
+X/*
+X ****************************************************************************
+X *
+X *                   "DHRYSTONE" Benchmark Program
+X *                   -----------------------------
+X *                                                                            
+X *  Version:    C, Version 2.1
+X *                                                                            
+X *  File:       dhry_2.c (part 3 of 3)
+X *
+X *  Date:       May 25, 1988
+X *
+X *  Author:     Reinhold P. Weicker
+X *
+X ****************************************************************************
+X */
+X
+X#include "dhry.h"
+X
+X#ifndef REG
+X#define REG
+X        /* REG becomes defined as empty */
+X        /* i.e. no register variables   */
+X#endif
+X
+Xextern  int     Int_Glob;
+Xextern  char    Ch_1_Glob;
+X
+X
+XProc_6 (Enum_Val_Par, Enum_Ref_Par)
+X/*********************************/
+X    /* executed once */
+X    /* Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2 */
+X
+XEnumeration  Enum_Val_Par;
+XEnumeration *Enum_Ref_Par;
+X{
+X  *Enum_Ref_Par = Enum_Val_Par;
+X  if (! Func_3 (Enum_Val_Par))
+X    /* then, not executed */
+X    *Enum_Ref_Par = Ident_4;
+X  switch (Enum_Val_Par)
+X  {
+X    case Ident_1: 
+X      *Enum_Ref_Par = Ident_1;
+X      break;
+X    case Ident_2: 
+X      if (Int_Glob > 100)
+X        /* then */
+X      *Enum_Ref_Par = Ident_1;
+X      else *Enum_Ref_Par = Ident_4;
+X      break;
+X    case Ident_3: /* executed */
+X      *Enum_Ref_Par = Ident_2;
+X      break;
+X    case Ident_4: break;
+X    case Ident_5: 
+X      *Enum_Ref_Par = Ident_3;
+X      break;
+X  } /* switch */
+X} /* Proc_6 */
+X
+X
+XProc_7 (Int_1_Par_Val, Int_2_Par_Val, Int_Par_Ref)
+X/**********************************************/
+X    /* executed three times                                      */ 
+X    /* first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,  */
+X    /*                  Int_Par_Ref becomes 7                    */
+X    /* second call:     Int_1_Par_Val == 10, Int_2_Par_Val == 5, */
+X    /*                  Int_Par_Ref becomes 17                   */
+X    /* third call:      Int_1_Par_Val == 6, Int_2_Par_Val == 10, */
+X    /*                  Int_Par_Ref becomes 18                   */
+XOne_Fifty       Int_1_Par_Val;
+XOne_Fifty       Int_2_Par_Val;
+XOne_Fifty      *Int_Par_Ref;
+X{
+X  One_Fifty Int_Loc;
+X
+X  Int_Loc = Int_1_Par_Val + 2;
+X  *Int_Par_Ref = Int_2_Par_Val + Int_Loc;
+X} /* Proc_7 */
+X
+X
+XProc_8 (Arr_1_Par_Ref, Arr_2_Par_Ref, Int_1_Par_Val, Int_2_Par_Val)
+X/*********************************************************************/
+X    /* executed once      */
+X    /* Int_Par_Val_1 == 3 */
+X    /* Int_Par_Val_2 == 7 */
+XArr_1_Dim       Arr_1_Par_Ref;
+XArr_2_Dim       Arr_2_Par_Ref;
+Xint             Int_1_Par_Val;
+Xint             Int_2_Par_Val;
+X{
+X  REG One_Fifty Int_Index;
+X  REG One_Fifty Int_Loc;
+X
+X  Int_Loc = Int_1_Par_Val + 5;
+X  Arr_1_Par_Ref [Int_Loc] = Int_2_Par_Val;
+X  Arr_1_Par_Ref [Int_Loc+1] = Arr_1_Par_Ref [Int_Loc];
+X  Arr_1_Par_Ref [Int_Loc+30] = Int_Loc;
+X  for (Int_Index = Int_Loc; Int_Index <= Int_Loc+1; ++Int_Index)
+X    Arr_2_Par_Ref [Int_Loc] [Int_Index] = Int_Loc;
+X  Arr_2_Par_Ref [Int_Loc] [Int_Loc-1] += 1;
+X  Arr_2_Par_Ref [Int_Loc+20] [Int_Loc] = Arr_1_Par_Ref [Int_Loc];
+X  Int_Glob = 5;
+X} /* Proc_8 */
+X
+X
+XEnumeration Func_1 (Ch_1_Par_Val, Ch_2_Par_Val)
+X/*************************************************/
+X    /* executed three times                                         */
+X    /* first call:      Ch_1_Par_Val == 'H', Ch_2_Par_Val == 'R'    */
+X    /* second call:     Ch_1_Par_Val == 'A', Ch_2_Par_Val == 'C'    */
+X    /* third call:      Ch_1_Par_Val == 'B', Ch_2_Par_Val == 'C'    */
+X
+XCapital_Letter   Ch_1_Par_Val;
+XCapital_Letter   Ch_2_Par_Val;
+X{
+X  Capital_Letter        Ch_1_Loc;
+X  Capital_Letter        Ch_2_Loc;
+X
+X  Ch_1_Loc = Ch_1_Par_Val;
+X  Ch_2_Loc = Ch_1_Loc;
+X  if (Ch_2_Loc != Ch_2_Par_Val)
+X    /* then, executed */
+X    return (Ident_1);
+X  else  /* not executed */
+X  {
+X    Ch_1_Glob = Ch_1_Loc;
+X    return (Ident_2);
+X   }
+X} /* Func_1 */
+X
+X
+XBoolean Func_2 (Str_1_Par_Ref, Str_2_Par_Ref)
+X/*************************************************/
+X    /* executed once */
+X    /* Str_1_Par_Ref == "DHRYSTONE PROGRAM, 1'ST STRING" */
+X    /* Str_2_Par_Ref == "DHRYSTONE PROGRAM, 2'ND STRING" */
+X
+XStr_30  Str_1_Par_Ref;
+XStr_30  Str_2_Par_Ref;
+X{
+X  REG One_Thirty        Int_Loc;
+X      Capital_Letter    Ch_Loc;
+X
+X  Int_Loc = 2;
+X  while (Int_Loc <= 2) /* loop body executed once */
+X    if (Func_1 (Str_1_Par_Ref[Int_Loc],
+X                Str_2_Par_Ref[Int_Loc+1]) == Ident_1)
+X      /* then, executed */
+X    {
+X      Ch_Loc = 'A';
+X      Int_Loc += 1;
+X    } /* if, while */
+X  if (Ch_Loc >= 'W' && Ch_Loc < 'Z')
+X    /* then, not executed */
+X    Int_Loc = 7;
+X  if (Ch_Loc == 'R')
+X    /* then, not executed */
+X    return (true);
+X  else /* executed */
+X  {
+X    if (strcmp (Str_1_Par_Ref, Str_2_Par_Ref) > 0)
+X      /* then, not executed */
+X    {
+X      Int_Loc += 7;
+X      Int_Glob = Int_Loc;
+X      return (true);
+X    }
+X    else /* executed */
+X      return (false);
+X  } /* if Ch_Loc */
+X} /* Func_2 */
+X
+X
+XBoolean Func_3 (Enum_Par_Val)
+X/***************************/
+X    /* executed once        */
+X    /* Enum_Par_Val == Ident_3 */
+XEnumeration Enum_Par_Val;
+X{
+X  Enumeration Enum_Loc;
+X
+X  Enum_Loc = Enum_Par_Val;
+X  if (Enum_Loc == Ident_3)
+X    /* then, executed */
+X    return (true);
+X  else /* not executed */
+X    return (false);
+X} /* Func_3 */
+X
+SHAR_EOF
+if test 5273 -ne "`wc -c < 'dhry_2.c'`"
+then
+	echo shar: "error transmitting 'dhry_2.c'" '(should have been 5273 characters)'
+fi
+fi
+echo shar: "extracting 'dhry_c.dif'" '(4354 characters)'
+if test -f 'dhry_c.dif'
+then
+	echo shar: "will not over-write existing file 'dhry_c.dif'"
+else
+sed 's/^X//' << \SHAR_EOF > 'dhry_c.dif'
+X7c7
+X<  *  Version:    C, Version 2.1
+X---
+X>  *  Version:    C, Version 2.0
+X9c9
+X<  *  File:       dhry.h (part 1 of 3)
+X---
+X>  *  File:       dhry_global.h (part 1 of 3)
+X11c11
+X<  *  Date:       May 25, 1988
+X---
+X>  *  Date:       March 3, 1988
+X30c30
+X<  *              In addition, Berkeley UNIX system calls "times ()" or "time ()"
+X---
+X>  *              In addition, UNIX system calls "times ()" or "time ()"
+X44c44
+X<  *      Please send results to Rick Richardson and/or Reinhold Weicker.
+X---
+X>  *      Please send results to Reinhold Weicker and/or Rick Richardson.
+X59c59
+X<  *  History:    This version C/2.1 has been made for two reasons:
+X---
+X>  *  History:    This version C/2.0 has been made for two reasons:
+X123,129d122
+X<  *              Version 2.1 is identical to version 2.0 distributed via
+X<  *              the UNIX network Usenet in March 1988 except that it corrects
+X<  *              some minor deficiencies that were found by users of version 2.0.
+X<  *              The only change within the measurement loop is that a
+X<  *              non-executed "else" part was added to the "if" statement in
+X<  *              Func_3, and a non-executed "else" part removed from Proc_3.
+X<  *
+X165,167c158,160
+X<  *              -DHZ=nnn
+X<  *                      In Berkeley UNIX, the function "times" returns process
+X<  *                      time in 1/HZ seconds, with HZ = 60 for most systems.
+X---
+X>  *              -DHZ=nnn                (default: 60)
+X>  *                      The function "times" returns process times in
+X>  *                      1/HZ seconds, with HZ = 60 for most systems.
+X169c162
+X<  *                      A VALUE.
+X---
+X>  *                      THE DEFAULT VALUE.
+X176,178c169,171
+X<  *  - dhry.h (this file, containing global definitions and comments)
+X<  *  - dhry_1.c (containing the code corresponding to Ada package Pack_1)
+X<  *  - dhry_2.c (containing the code corresponding to Ada package Pack_2)
+X---
+X>  *  - dhry_global.h (this file, containing global definitions and comments)
+X>  *  - dhry_pack_1.c (containing the code corresponding to Ada package Pack_1)
+X>  *  - dhry_pack_2.c (containing the code corresponding to Ada package Pack_2)
+X350a344
+X> #ifndef TIMES
+X353,354c347,354
+X<                 /* Use times(2) time function unless    */
+X<                 /* explicitly defined otherwise         */
+X---
+X> #endif
+X>                 /* Use "times" function for measurement */
+X>                 /* unless explicitly defined otherwise  */
+X> #ifndef HZ
+X> #define HZ      60
+X> #endif
+X>                 /* Use HZ = 60 for "times" function     */
+X>                 /* unless explicitly defined otherwise  */
+X363c363
+X<                 /* Berkeley UNIX C returns process times in seconds/HZ */
+X---
+X>                 /* UNIX C returns process times in seconds/HZ */
+X7c7
+X<  *  Version:    C, Version 2.1
+X---
+X>  *  Version:    C, Version 2.0
+X9c9
+X<  *  File:       dhry_1.c (part 2 of 3)
+X---
+X>  *  File:       dhry_pack_1.c (part 2 of 3)
+X11c11
+X<  *  Date:       May 25, 1988
+X---
+X>  *  Date:       March 3, 1988
+X18c18
+X< #include "dhry.h"
+X---
+X> #include "dhry_global.h"
+X50,51d49
+X< #define Too_Small_Time 120
+X<                 /* Measurements should last at least about 2 seconds */
+X55a54,55
+X> #endif
+X> 
+X58d57
+X< #endif
+X73a73
+X> 
+X84a85
+X> 
+X99,100c100,102
+X<         /* Was missing in published program. Without this statement,    */
+X<         /* Arr_2_Glob [8][7] would have an undefined value.             */
+X---
+X>         /* Was missing in published program. Without this               */
+X>         /* initialization, Arr_2_Glob [8][7] would have an              */
+X>         /* undefined value.                                             */
+X105c107
+X<   printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
+X---
+X>   printf ("Dhrystone Benchmark, Version 2.0 (Language: C)\n");
+X281c283
+X< /******************/
+X---
+X> /**********************/
+X338c340
+X< /******************/
+X---
+X> /**********************/
+X347a350,351
+X>   else /* not executed */
+X>     Int_Glob = 100;
+X349a354
+X> 
+X7c7
+X<  *  Version:    C, Version 2.1
+X---
+X>  *  Version:    C, Version 2.0
+X9c9
+X<  *  File:       dhry_2.c (part 3 of 3)
+X---
+X>  *  File:       dhry_pack_2.c (part 3 of 3)
+X11c11
+X<  *  Date:       May 25, 1988
+X---
+X>  *  Date:       March 3, 1988
+X18c18
+X< #include "dhry.h"
+X---
+X> #include "dhry_global.h"
+X189,190d188
+X<   else /* not executed */
+X<     return (false);
+SHAR_EOF
+if test 4354 -ne "`wc -c < 'dhry_c.dif'`"
+then
+	echo shar: "error transmitting 'dhry_c.dif'" '(should have been 4354 characters)'
+fi
+fi
+exit 0
+#	End of shell archive

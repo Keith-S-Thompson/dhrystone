@@ -1,0 +1,295 @@
+                                                                                                                                                                                                                                                                
+Relay-Version: version B 2.10 5/3/83; site utzoo.UUCP
+Posting-Version: Notesfiles $Revision: 1.6.2.14 $; site siemens.UUCP
+Path: utzoo!watmath!clyde!burl!ulysses!allegra!princeton!eosp1!siemens!bea
+From: b...@siemens.UUCP
+Newsgroups: net.sources
+Subject: Dhrystone benchmark, part 1 pkk, paa
+Message-ID: <28600001@siemens.UUCP>
+Date: Thu, 15-Nov-84 09:20:00 EST
+Article-I.D.: siemens.28600001
+Posted: Thu Nov 15 09:20:00 1984
+Date-Received: Fri, 16-Nov-84 05:32:59 EST
+Lines: 279
+Nf-ID: #N:siemens:28600001:000:12017
+Nf-From: siemens!bea    Nov 15 09:20:00 1984
+
+
+
+
+          MEASUREMENTS WITH THE "DHRYSTONE" BENCHMARK PROGRAM
+                            - USER'S GUIDE -
+
+                          REINHOLD P. WEICKER
+
+                              OCTOBER 1984
+
+
+
+1. Introduction
+
+
+For  "Communication of the ACM", I wrote a paper "Dhrystone: A Synthetic
+Systems Programming Benchmark" which appeared in the  October  issue  of
+the  journal  (vol.  27,  no.  10,  Oct. 1984, p. 1013-1030).  The paper
+consists of two main parts: First, statistical data  about  the  use  of
+programming  language  features  (especially  in  the  area  of  systems
+programming) are summarized, and second, a synthetic benchmark  program,
+written in Ada, is given that is based on these data.
+
+I  am posting the program here in Usenet for those who are interested in
+using  the  "Dhrystone"  benchmark  program  for  measurements.      The
+distribution consists of four parts:
+
+   - Part  1  is  this  paper  (user's guide) containing hints that
+     should be taken into account when  the  program  is  used  for
+     benchmarking,
+
+   - Part 2 is the program (reference version) in Ada,
+
+   - Part 3 is the program (measurement version) in Pascal,
+
+   - Part 4 is the program (measurement version) in C. 
+
+A  "reference"  version  contains  just  the program text, together with
+comments on the statistics, a "measurement" version is a versions  where
+statements  for  execution  time  measurement  have  been inserted.  See
+section 4 for more details on measurement methods.
+
+In the case of Ada, the "reference" versions contains the  program  text
+as  published.  In  the  cases  of Pascal and C, reference versions (not
+distributed here) contain an equivalent program text in these languages.
+See the publication for remarks on  language  issues  that  have  to  be
+considered when the program is translated to languages other than Ada.
+
+In  the  "measurement"  versions,  some  statements (those accessing the
+operating  system  clock)  are  implementation-dependent.   The   sample
+measurement version given here can be used on Berkeley UNIX systems (4.2
+bsd).    Of  course,  for measurements on other systems these statements
+have to be changed according to the language library routines  available
+on these systems.
+
+The  program  versions distributed via Usenet contain the program in one
+file per programming language, I didn't want to flood the net  with  too
+many  versions or with too many small units.  However, the understanding
+is that the program (Ada and C versions)  consists  of  several  modules
+(compilation units) that can be compiled separately; see section 3 for a
+discussion  of  compilation  and linkage issues (program in one file vs.
+program in several files).  Versions with the source program in  several
+files  can be obtained easily by "cutting" the program into parts at the
+obvious locations.  In the case of C, suitable "#include" statements and
+an "extern" declaration need to be added.
+
+Similarly, the reference versions for Pascal and C can be obtained  from
+the  files  sent  via Usenet by removing the statements for measurement,
+the I/O statements and the loops around the main procedure.
+
+
+
+2. Errors / Inconsistencies
+
+
+There are two minor inconsistencies in  the  published  version  of  the
+program  which  were detected too late for a correction in the published
+version:
+
+   - In the comment at the  beginning  of  the  function  body  for
+     Func_2,  the  beginning  of  the  string  literal  should read
+     "DHRYSTONE PROGRAM, ..." instead of "DHRYSTONE, ..." for  both
+     String_Par_In_1 and String_Par_In_2.
+
+     The  code  is correct, just the comment text is incorrect; the
+     two strings are  different  in  the  20th,  not  in  the  12th
+     character.
+
+   - It  can  be  argued  that  the  first "if" statement in Func_2
+     should have been formulated
+
+       if Char_Loc >= 'W' and then Char_Loc < 'Z'
+
+     rather than
+
+       if Char_Loc >= 'W' and Char_Loc < 'Z'
+
+     since a programmer  writing  such  a  program  would  only  be
+     interested  in  the  value  of  the "if" condition as a whole,
+     there is no need to evaluate "Char_Loc < 'Z'" if "Char_Loc  >=
+     'W'" evaluates to "false" (however, it doesn't hurt either).
+
+     In the C version of the program, I used for this statement the
+     operator "&&" (and-then) rather than "&" since in C, different
+     from  Ada and Pascal, "&" forces the compiler to interpret the
+     result as integer (there is no data type boolean in C) and  to
+     apply  a  bitwise  "and"  operation.   However, I left the Ada
+     version as published since I didn't want to change the program
+     after publication, even if there is now a slight inconsistency
+     between the Ada and the C version.
+
+
+
+3. Compilation and Linkage Issues
+
+
+3.1. Ada Version
+
+The "Dhrystone" program in its original (Ada) version  consists  of  six
+library  units  in  the  sense  of Ada: Two packages (Pack_1 and Pack_2)
+consisting of both specification and body, one package (Global_Def) with
+specification only, and one subprogram (Main). The package structure  is
+intended since this is the natural way for programming in Ada.
+
+As  far  as benchmarking and execution times are concerned, there can be
+systems where calls and data accesses  across  package  boundaries  have
+execution times different from those within a package.  In addition, the
+execution  time  may  depend  upon  the  way the program is compiled and
+executed; there are two possible ways:
+
+
+   1. the six units are compiled  separately  and  linked  together
+      later,
+
+   2. the  six  units  are  submitted to the compiler in one source
+      file.
+
+
+For many Ada systems there will be no difference in execution  time,  as
+far  as  the  two  compilation  models are concerned.  However, for some
+machines there may be a difference since different  representations  may
+be  used  for  addresses  (e.g.,  16  bit  or  32 bit), depending on the
+compilation and linkage model used.
+
+If there is a difference in execution time, the times  for  both  models
+should be measured; model (1) is the one that corresponds more to actual
+software  development.  Ada  was  explicitly designed for large software
+projects that use separate compilation.
+
+
+3.2. C Version
+
+C  does not have a package structure similar to Ada, but it has features
+for independent compilation. Therefore, the same consideration apply  as
+described above for Ada.
+
+The  program  structure of the C version is assumed to be similar to the
+Ada version, with the difference that there  is  no  separation  between
+specification  and  body,  and  that "main" and "Proc_0" can be the same
+procedure.  There are three modules, where module  1  contains  constant
+definitions  and  type  declarations  only,  and  the  two other modules
+contain the executable routines of the program:
+
+
+   - Module 2 contains the global variables  and  procedures  main,
+     Proc_1, ..., Proc_5.
+
+   - Module   3   contains  procedures  Proc_6,  ...,  Proc_8,  and
+     functions Func_1, ... Func_3.
+
+
+If they are compiled separately, these  modules  use  an  "#include"  to
+refer to the module with the global definitions.
+
+
+3.3. Pascal Version
+
+Although   many   Pascal   systems   provide  features  for  independent
+compilation, this is not part of the  ISO  or  ANSI  language  standard.
+Therefore it is not possible to formulate a portable Pascal version with
+several  modules,  and this set contains only a version with the program
+in one source file.
+
+
+4. Measurement
+
+
+4.1. Method of Measurement
+
+For measuring the  execution  time,  I  have  prepared  (Pascal  and  C)
+versions  of  the program which use the normal method:  The program text
+between the comments "Start timer" and "Stop timer"  is  enclosed  in  a
+loop,  and  the  loop  is  executed  often  enough  that the time can be
+measured.  (Problems with respect to a cache have been discussed in  the
+publication.)  To  get  an  exact result, the execution time of the same
+number of empty loops is subtracted.
+
+On  a  single-user  system,  the  output  statements  inserted  in   the
+measurement  versions  can  be used to measure the elapsed time manually
+with  a stopwatch.  On a multi-user system, this obviously does not give
+the expected result unless it is guaranteed that  no  other  process  is
+running   on   the  system.    Fortunately,  most  programming  language
+implementations provide a call to a runtime library  function  with  the
+name  "clock",  "runtime",  or similar that returns the process-specific
+clock, measured in some time unit.
+
+I used the subroutines "clock" (Pascal) and "times" (C) for measurements
+on a VAX 11/780 running Berkeley UNIX  (4.2  bsd).    It  seems  that  a
+certain  degree  of  inaccuracy cannot be avoided due to inaccuracies in
+the operating  system  clock,  influences  of  time  slicing,  different
+mappings  of pages to physical memory, etc.  As an example, Berkely UNIX
+gives for C the value of the clock in two parts, "user time" and "system
+time". Although the program does  not  execute  any  explicit  operating
+system  calls  between  the measurement points, the system time is not 0
+(it usually lies between 2 and 5 % of the user time).  For Pascal,  only
+a time called "user time" is available.
+
+
+4.2. Control of Results
+
+When  the  program is entered into the computer manually, care should be
+taken  that  no  typing  errors  occur;  there  is  no   straightforward
+indication  that  the  program  executes  exactly  the  statements it is
+supposed to execute.  I didn't see a reasonable way to have the  program
+compute result values that can be checked easily, while at the same time
+maintaining   the   complicated   balance  with  regard  to  statements,
+operators, data types etc.  For  control  purposes,  I  usually  made  a
+special version with output statements that allows to follow the flow of
+control.    Assertions about the values of variables are provided in the
+form of comments in the program,  and  the  following  chart  shows  the
+dynamic procedure call chain:
+
+    Main
+        P0
+           P5 P4 F2    P7 P8 P1                F1 F1 P2
+                    F1          P3    P6    P7
+                                   P7    F3
+
+
+4.3. Documentation of Results
+
+In  stating  results,  the  configuration used for measurement should be
+described as detailed as possible.  Relevant data are: Machine  version,
+language,  compiler  version,  compile  options (e.g. "optimize" option,
+runtime checks  enabled  or  not).    With  microprocessors,  the  clock
+frequency  and the memory system characteristics (number of wait states)
+are necessary for meaningful comparisons.  In the case of C,  it  should
+be included whether the "register" attribute has been used, and to which
+variables  it  was  applied.  (According to my experiences with Berkeley
+UNIX C on a VAX 11/780, the times differed somewhat, though not much.)
+
+
+5. Correspondence
+
+
+For  people who want to make measurements with the program and who don't
+have access to Usenet, I have prepared  floppy  disks  with  the  source
+files,  the  data  are:  Standard size 8", single-sided, double density,
+written on an Intel 86/330 in RMX format; these floppy disks are sent in
+exchange for an empty floppy disk.  (However, this  will  be  irrelevant
+for you, the reader of this note posted on Usenet.)
+
+If  you  make  measurements  with the program - whether you obtained the
+source file via Usenet, via floppy disk or by re-typing it  -,  I  would
+appreciate  very  much  if  you  could  send  me  the  results  of  your
+measurements.  I plan to make a comprehensive list of these results  for
+different  machines  and  compilers and, in the first months of 1985, to
+send this list to all who contributed to it.
+
+For US mail, please use the address
+
+Reinhold P. Weicker
+Siemens Corporate Research and Technology
+105 College Road East
+Princeton, NJ 08540
+
+For electronic mail via UUCP, the address (at present) is
+
+...{ihnp4,allegra,decvax}!ogcvax!inteloa!weicker

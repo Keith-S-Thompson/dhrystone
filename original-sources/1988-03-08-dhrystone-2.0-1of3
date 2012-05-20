@@ -1,0 +1,199 @@
+Path: utzoo!mnetor!uunet!pcrat!dry
+From: d...@pcrat.UUCP (Dhrystone)
+Newsgroups: comp.arch
+Subject: Dhrystone 2.0 (1 of 3)
+Message-ID: <492@pcrat.UUCP>
+Date: 9 Mar 88 03:16:12 GMT
+Organization: PC Research, Inc., Tinton Falls, NJ
+Lines: 189
+Keywords: benchmark
+
+
+	03/08/88
+
+	As you can see, haste makes waste.  Here it is, posted
+	a second time.  There was one bona-fide botch in what
+	Reinhold sent me.  And then I got a hold of it and
+	tried to convert all the spaces to tabs to conserve
+	network bandwidth.  Big Mistake.  So now it's coming
+	to you in three shar's, with my boiler plate up front.
+
+	Also, as far as the Pascal version possibly failing
+	a consistency check, we'll have to wait for Reinhold
+	pass judgement.
+
+	-Rick
+#! /bin/sh
+# This is a shell archive, meaning:
+# 1. Remove everything above the #! /bin/sh line.
+# 2. Save the resulting text in a file.
+# 3. Execute the file with /bin/sh (not csh) to create:
+#	README.RER
+#	Makefile
+#	submit.frm
+# This archive created: Tue Mar  8 21:59:28 1988
+export PATH; PATH=/bin:/usr/bin:$PATH
+if test -f 'README.RER'
+then
+	echo shar: "will not over-write existing file 'README.RER'"
+else
+sed 's/^X//' << \SHAR_EOF > 'README.RER'
+XSince I was flooded with requests to not wait a day, let alone a week
+Xbefore posting Dhrystone 2.0, here it is, without any delay (and no
+Xresults, either).
+X
+XI've enclosed a new submission form (note new address for mailings).
+XPlease deluge this mailbox (..!uunet!pcrat!dry2) with your results.
+XI'll summarize and repost when the dust clears.  Please do not
+Xassume that I will pull posted results off of the net (I won't, its
+Xtoo much work).
+X
+XAlso, please make note of the fact that I've attempted to include
+Xa Makefile for UNIX.  Pay particular attention to the HZ parameter,
+Xeven though your power may be 50 or 60 hertz, your computer may not be.
+XYou may have to ask someone, read the manual, or check
+X	/usr/include/sys/param.h
+Xfor this information.
+X
+XThere are two versions to run, one with register variables, and one
+Xwithout.  Please let the benchmark run for 30,000 loops on sixteen
+Xbit machines, and for much longer (a minute or two) on faster machines.
+XFor segmented architectures, it is appropriate to submit results for
+Xall memory models, as shown below.
+X
+XHere's a sample submission of results:
+X
+XDHRYSTONE 2.0 BENCHMARK REPORTING FORM
+XMANUF: IBM
+XMODEL: PC/AT
+XPROC: 80286
+XCLOCK: 8 Mhz
+XOS: Venix
+XOVERSION: SVr2.3
+XCOMPILER: AT&T cc
+XCVERSION: 11/8/84
+XOPTIONS: -O
+XNOREG: 1318
+XREG: 1450
+XNOTES: Small Model
+XDATE: 03/04/88
+XSUBMITTER: pcrat!rick (Rick Richardson)
+XMAILTO: uunet!pcrat!dry2
+X
+XDHRYSTONE 2.0 BENCHMARK REPORTING FORM
+XMANUF: IBM
+XMODEL: PC/AT
+XPROC: 80286
+XCLOCK: 8 Mhz
+XOS: Venix
+XOVERSION: SVr2.3
+XCOMPILER: AT&T cc
+XCVERSION: 11/8/84
+XOPTIONS: -O -Ml
+XNOREG: 1043
+XREG: 1043
+XNOTES: Large Model
+XDATE: 03/04/88
+XSUBMITTER: pcrat!rick (Rick Richardson)
+XMAILTO: uunet!pcrat!dry2
+X
+X
+X		Rick Richardson, President, PC Research, Inc.
+X
+X(201) 542-3734 (voice, nights)   OR     (201) 834-1378 (voice, days)
+Xuunet!pcrat!rick (UUCP)			rick%pcrat.u...@uunet.uu.net (INTERNET)
+X		uunet!pcrat!dry2   (Dhrystone submission forms only)
+SHAR_EOF
+fi
+if test -f 'Makefile'
+then
+	echo shar: "will not over-write existing file 'Makefile'"
+else
+sed 's/^X//' << \SHAR_EOF > 'Makefile'
+X#
+X#	Adjust for your system
+X#
+X#	TIME_FUNC, STRUCTASSIGN, and ENUMS selectable by changing order
+X#
+XCC=		cc			# C compiler name goes here
+X
+XTIME_FUNC=	-DTIME			# Use time(2) for measurement
+XTIME_FUNC=	-DTIMES			# Use times(2) for measurement
+XHZ=		60			# Frequency of times(2) clock ticks
+X
+XSTRUCTASSIGN=	-DNOSTRUCTASSIGN	# Compiler cannot assign structs
+XSTRUCTASSIGN=				# Compiler can assign structs
+X
+XENUMS=		-DNOENUMS		# Compiler doesn't have enum type
+XENUMS=					# Compiler does have enum type
+X
+XOPTIMIZE=	-O			# Optimization Level
+X
+XLFLAGS=					#Loader Flags
+X
+XCFLAGS=	$(OPTIMIZE) $(TIME_FUNC) -DHZ=$(HZ) $(ENUMS) $(STRUCTASSIGN) $(CFL)
+X
+X#
+X#		You shouldn't need to touch the rest
+X#
+XSRC=	dhry_pack_1.c dhry_pack_2.c
+XHDR=	dhry_global.h
+X
+Xall:	dry2 dry2reg
+X
+Xdry2:		$(SRC) $(HDR)
+X		$(CC) $(CFLAGS) $(SRC) $(LFLAGS) -o $@
+X
+Xdry2reg:	$(SRC) $(HDR)
+X		$(CC) $(CFLAGS) -DREG=register $(SRC) $(LFLAGS) -o $@
+X
+Xshar:	dry2shar.1 dry2shar.2 dry2shar.3
+X
+Xdry2shar.1: README.RER Makefile submit.frm
+X	shar -p X README.RER Makefile submit.frm >$@
+X
+Xdry2shar.2: README $(HDR) $(SRC)
+X	shar -p X README $(HDR) $(SRC) >$@
+X
+Xdry2shar.3: dhry.p
+X	shar -p X dhry.p >$@
+X
+Xclean:
+X	-rm -f *.o
+X
+Xclobber: clean
+X	-rm -f dry2 dry2reg dry2shar.*
+X
+Xpost:
+X	for i in 1 2 3;\
+X	do\
+X		cat HEADERS BOILER.$$i dry2shar.$$i |\
+X		inews -h -t "Dhrystone 2.0 ($$i of 3)" -n comp.arch;\
+X	done
+SHAR_EOF
+fi
+if test -f 'submit.frm'
+then
+	echo shar: "will not over-write existing file 'submit.frm'"
+else
+sed 's/^X//' << \SHAR_EOF > 'submit.frm'
+XDHRYSTONE 2.0 BENCHMARK REPORTING FORM
+XMANUF:
+XMODEL:
+XPROC:
+XCLOCK:
+XOS:
+XOVERSION:
+XCOMPILER:
+XCVERSION:
+XOPTIONS:
+XNOREG:
+XREG:
+XNOTES:
+XDATE:
+XSUBMITTER:
+XMAILTO: uunet!pcrat!dry2
+SHAR_EOF
+fi
+exit 0
+#	End of shell archive

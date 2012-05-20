@@ -1,0 +1,58 @@
+7c7
+<  *  Version:    C, Version 2.1
+---
+>  *  Version:    C, Version 2.0
+11c11
+<  *  Date:       May 17, 1988
+---
+>  *  Date:       March 3, 1988
+50,51d49
+< #define Too_Small_Time 120
+<                 /* Measurements should last at least about 2 seconds */
+55a54,58
+> #endif
+> #ifdef MSC_TIME
+> clock_t	clock();
+> #endif
+> 
+58d60
+< #endif
+73a76
+> 
+84a88
+> 
+99,100c103,105
+<         /* Was missing in published program. Without this statement,    */
+<         /* Arr_2_Glob [8][7] would have an undefined value.             */
+---
+>         /* Was missing in published program. Without this               */
+>         /* initialization, Arr_2_Glob [8][7] would have an              */
+>         /* undefined value.                                             */
+105c110
+<   printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
+---
+>   printf ("Dhrystone Benchmark, Version 2.0 (Language: C)\n");
+134a140,142
+> #ifdef MSC_CLOCK
+>   Begin_Time = clock();
+> #endif
+192a201,203
+> #ifdef MSC_CLOCK
+>   End_Time = clock();
+> #endif
+281c292
+< /******************/
+---
+> /**********************/
+338c349
+< /******************/
+---
+> /**********************/
+347a359,360
+>   else /* not executed */
+>     Int_Glob = 100;
+351a365
+> 
+384,385d397
+< 
+< 

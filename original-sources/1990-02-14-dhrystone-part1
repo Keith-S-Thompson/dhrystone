@@ -1,0 +1,879 @@
+Path: gmdzi!unido!mcsun!tuvie!inst182
+From: inst182@tuvie (Inst.f.Techn.Informatik)
+Newsgroups: alt.sources
+Subject: dhrystone benchmark (Part 1)
+Message-ID: <1101@tuvie>
+Date: 14 Feb 90 17:27:09 GMT
+Organization: TU Vienna EDP-Center, Vienna, AUSTRIA
+Lines: 869
+Posted: Wed Feb 14 18:27:09 1990
+
+This and the two folowing postings contain the dhrystone benchmark.
+
+----------------------------------------------------------------------
+
+#! /bin/sh
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  Makefile dhrystone.c
+# Wrapped by web@kivax on Mon Feb 12 07:33:59 1990
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test -f Makefile -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"Makefile\"
+else
+echo shar: Extracting \"Makefile\" \(1009 characters\)
+sed "s/^X//" >Makefile <<'END_OF_Makefile'
+XCFLAGS = 
+XTIME = time
+X
+Xall: rundhrystone rundhrystoneR rundhrystoneO rundhrystoneRO
+X
+Xdhrystone: dhrystone.c
+X	$(CC) dhrystone.c -o dhrystone
+X
+Xrundhrystone: dhrystone
+X	@echo 'Running dhrystone (Level 1 optimization, without registers)'
+X	./dhrystone
+X	./dhrystone
+X	./dhrystone
+X	@echo
+X
+X
+XdhrystoneR: dhrystone.c
+X	$(CC) -DREG=register dhrystone.c -o dhrystoneR
+X
+XrundhrystoneR: dhrystoneR
+X	@echo 'Running dhrystone (Level 1 optimization, with registers)'
+X	./dhrystoneR
+X	./dhrystoneR
+X	./dhrystoneR
+X	@echo
+X
+X
+XdhrystoneO: dhrystone.c
+X	$(CC) -O dhrystone.c -o dhrystoneO
+X
+XrundhrystoneO: dhrystoneO
+X	@echo 'Running dhrystone (Level 2 optimization, without registers)'
+X	./dhrystoneO
+X	./dhrystoneO
+X	./dhrystoneO
+X	@echo
+X
+X
+XdhrystoneRO: dhrystone.c
+X	$(CC) -O -DREG=register dhrystone.c -o dhrystoneRO
+X
+XrundhrystoneRO: dhrystoneRO
+X	@echo 'Running dhrystone (Level 2 optimization, with registers)'
+X	./dhrystoneRO
+X	./dhrystoneRO
+X	./dhrystoneRO
+X	@echo
+X
+X
+Xclean:
+X	(set nonomatch;rm -f dhrystone dhrystoneR dhrystoneO dhrystoneRO *.o)
+END_OF_Makefile
+if test 1009 -ne `wc -c <Makefile`; then
+    echo shar: \"Makefile\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+if test -f dhrystone.c -a "${1}" != "-c" ; then 
+  echo shar: Will not over-write existing file \"dhrystone.c\"
+else
+echo shar: Extracting \"dhrystone.c\" \(27341 characters\)
+sed "s/^X//" >dhrystone.c <<'END_OF_dhrystone.c'
+X/***** hpda:net.sources / homxb!gemini /  1:58 am  Apr  1, 1986*/
+X/*	EVERBODY:	Please read "APOLOGY" below. -rick 01/06/85
+X *			See introduction in net.arch, or net.micro
+X *
+X *	"DHRYSTONE" Benchmark Program
+X *
+X *	Version:	C/1.1, 12/01/84
+X *
+X *	Date:		PROGRAM updated 01/06/86, RESULTS updated 03/31/86
+X *
+X *	Author:		Reinhold P. Weicker,  CACM Vol 27, No 10, 10/84 pg. 1013
+X *			Translated from ADA by Rick Richardson
+X *			Every method to preserve ADA-likeness has been used,
+X *			at the expense of C-ness.
+X *
+X *	Compile:	cc -O dry.c -o drynr			: No registers
+X *                      cc -O -DREG=register dry.c -o dryr      : Registers
+X *
+X *	Defines:	Defines are provided for old C compiler's
+X *			which don't have enums, and can't assign structures.
+X *			The time(2) function is library dependant; Most
+X *			return the time in seconds, but beware of some, like
+X *			Aztec C, which return other units.
+X *			The LOOPS define is initially set for 50000 loops.
+X *			If you have a machine with large integers and is
+X *			very fast, please change this number to 500000 to
+X *			get better accuracy.  Please select the way to
+X *			measure the execution time using the TIME define.
+X *			For single user machines, time(2) is adequate. For
+X *			multi-user machines where you cannot get single-user
+X *			access, use the times(2) function.  If you have
+X *			neither, use a stopwatch in the dead of night.
+X *			Use a "printf" at the point marked "start timer"
+X *			to begin your timings. DO NOT use the UNIX "time(1)"
+X *			command, as this will measure the total time to
+X *			run this program, which will (erroneously) include
+X *			the time to malloc(3) storage and to compute the
+X *			time it takes to do nothing.
+X *
+X *	Run:		drynr; dryr
+X *
+X *	Results:	If you get any new machine/OS results, please send to:
+X *
+X *				ihnp4!castor!pcrat!rick
+X *
+X *			and thanks to all that do.  Space prevents listing
+X *			the names of those who have provided some of these
+X *			results.  I'll be forwarding these results to
+X *			Rheinhold Weicker.
+X *
+X *	Note:		I order the list in increasing performance of the
+X *			"with registers" benchmark.  If the compiler doesn't
+X *			provide register variables, then the benchmark
+X *			is the same for both REG and NOREG.
+X *
+X *	PLEASE:		Send complete information about the machine type,
+X *			clock speed, OS and C manufacturer/version.  If
+X *			the machine is modified, tell me what was done.
+X *			On UNIX, execute uname -a and cc -V to get this info.
+X *
+X *	80x8x NOTE:	80x8x benchers: please try to do all memory models
+X *			for a particular compiler.
+X *
+X *	APOLOGY (1/30/86):
+X *		Well, I goofed things up!  As pointed out by Haakon Bugge,
+X *		the line of code marked "GOOF" below was missing from the
+X *		Dhrystone distribution for the last several months.  It
+X *		*WAS* in a backup copy I made last winter, so no doubt it
+X *		was victimized by sleepy fingers operating vi!
+X *
+X *		The effect of the line missing is that the reported benchmarks
+X *		are 15% too fast (at least on a 80286).  Now, this creates
+X *		a dilema - do I throw out ALL the data so far collected
+X *		and use only results from this (corrected) version, or
+X *		do I just keep collecting data for the old version?
+X *
+X *		Since the data collected so far *is* valid as long as it
+X *		is compared with like data, I have decided to keep
+X *		TWO lists- one for the old benchmark, and one for the
+X *		new.  This also gives me an opportunity to correct one
+X *		other error I made in the instructions for this benchmark.
+X *		My experience with C compilers has been mostly with
+X *		UNIX 'pcc' derived compilers, where the 'optimizer' simply
+X *		fixes sloppy code generation (peephole optimization).
+X *		But today, there exist C compiler optimizers that will actually
+X *		perform optimization in the Computer Science sense of the word,
+X *		by removing, for example, assignments to a variable whose
+X *		value is never used.  Dhrystone, unfortunately, provides
+X *		lots of opportunities for this sort of optimization.
+X *
+X *		I request that benchmarkers re-run this new, corrected
+X *		version of Dhrystone, turning off or bypassing optimizers
+X *		which perform more than peephole optimization.  Please
+X *		indicate the version of Dhrystone used when reporting the
+X *		results to me.
+X *		
+X * RESULTS BEGIN HERE
+X *
+X *----------------DHRYSTONE VERSION 1.1 RESULTS BEGIN--------------------------
+X *
+X * MACHINE	MICROPROCESSOR	OPERATING	COMPILER	DHRYSTONES/SEC.
+X * TYPE				SYSTEM				NO REG	REGS
+X * --------------------------	------------	-----------	---------------
+X * Apple IIe	65C02-1.02Mhz	DOS 3.3		Aztec CII v1.05i  37	  37
+X * -		Z80-2.5Mhz	CPM-80 v2.2	Aztec CII v1.05g  91	  91
+X * -		8086-8Mhz	RMX86 V6	Intel C-86 V2.0	 197	 203LM??
+X * IBM PC/XT	8088-4.77Mhz	COHERENT 2.3.43	Mark Wiiliams	 259	 275
+X * -		8086-8Mhz	RMX86 V6	Intel C-86 V2.0	 287	 304 ??
+X * Fortune 32:16 68000-6Mhz	V7+sys3+4.1BSD  cc		 360	 346
+X * PDP-11/34A	w/FP-11C	UNIX V7m	cc		 406	 449
+X * Macintosh512	68000-7.7Mhz	Mac ROM O/S	DeSmet(C ware)	 625	 625
+X * VAX-11/750	w/FPA		UNIX 4.2BSD	cc		 831	 852
+X * DataMedia 932 68000-10Mhz	UNIX sysV	cc		 837	 888
+X * Plexus P35	68000-12.5Mhz	UNIX sysIII	cc		 835	 894
+X * ATT PC7300	68010-10Mhz	UNIX 5.0.3	cc		 973	1034
+X * Compaq II	80286-8Mhz	MSDOS 3.1	MS C 3.0 	1086	1140 LM
+X * IBM PC/AT    80286-7.5Mhz    Venix/286 SVR2  cc              1159    1254 *15
+X * Compaq II	80286-8Mhz	MSDOS 3.1	MS C 3.0 	1190	1282 MM
+X * MicroVAX II	-		Mach/4.3	cc		1361	1385
+X * DEC uVAX II	-		Ultrix-32m v1.1	cc		1385	1399
+X * Compaq II	80286-8Mhz	MSDOS 3.1	MS C 3.0 	1351	1428
+X * VAX 11/780	-		UNIX 4.2BSD	cc		1417	1441
+X * VAX-780/MA780		Mach/4.3	cc		1428	1470
+X * VAX 11/780	-		UNIX 5.0.1	cc 4.1.1.31	1650	1640
+X * Ridge 32C V1	-		ROS 3.3		Ridge C (older)	1628	1695
+X * Gould PN6005	-		UTX 1.1c+ (4.2)	cc		1732	1884
+X * Gould PN9080	custom ECL	UTX-32 1.1C	cc		4745	4992
+X * VAX-784	-		Mach/4.3	cc		5263	5555 &4
+X * VAX 8600	-		4.3 BSD		cc		6329	6423
+X * Amdahl 5860	-		UTS sysV	cc 1.22	       28735   28846
+X * IBM3090/200	-		?		?	       31250   31250
+X *
+X *
+X *----------------DHRYSTONE VERSION 1.0 RESULTS BEGIN--------------------------
+X *
+X * MACHINE	MICROPROCESSOR	OPERATING	COMPILER	DHRYSTONES/SEC.
+X * TYPE				SYSTEM				NO REG	REGS
+X * --------------------------	------------	-----------	---------------
+X * Commodore 64	6510-1MHz	C64 ROM		C Power 2.8	  36	  36
+X * HP-110	8086-5.33Mhz	MSDOS 2.11	Lattice 2.14	 284	 284
+X * IBM PC/XT	8088-4.77Mhz	PC/IX		cc		 271	 294
+X * CCC 3205	-		Xelos(SVR2) 	cc		 558	 592
+X * Perq-II	2901 bitslice	Accent S5c 	cc (CMU)	 301	 301
+X * IBM PC/XT	8088-4.77Mhz	COHERENT 2.3.43	MarkWilliams cc  296	 317
+X * Cosmos	68000-8Mhz	UniSoft		cc		 305	 322
+X * IBM PC/XT	8088-4.77Mhz	Venix/86 2.0	cc		 297	 324
+X * DEC PRO 350  11/23           Venix/PRO SVR2  cc               299     325
+X * IBM PC	8088-4.77Mhz	MSDOS 2.0	b16cc 2.0	 310	 340
+X * PDP11/23	11/23           Venix (V7)      cc               320     358
+X * Commodore Amiga		?		Lattice 3.02	 368	 371
+X * PC/XT        8088-4.77Mhz    Venix/86 SYS V  cc               339     377
+X * IBM PC	8088-4.77Mhz	MSDOS 2.0	CI-C86 2.20M	 390	 390
+X * IBM PC/XT	8088-4.77Mhz	PCDOS 2.1	Wizard 2.1	 367	 403
+X * IBM PC/XT	8088-4.77Mhz	PCDOS 3.1	Lattice 2.15	 403	 403 @
+X * Colex DM-6	68010-8Mhz	Unisoft SYSV	cc		 378	 410
+X * IBM PC	8088-4.77Mhz	PCDOS 3.1	Datalight 1.10	 416	 416
+X * IBM PC	NEC V20-4.77Mhz	MSDOS 3.1	MS 3.1 		 387	 420
+X * IBM PC/XT	8088-4.77Mhz	PCDOS 2.1	Microsoft 3.0	 390	 427
+X * IBM PC	NEC V20-4.77Mhz	MSDOS 3.1	MS 3.1 (186) 	 393	 427
+X * PDP-11/34	-		UNIX V7M	cc		 387	 438
+X * IBM PC	8088, 4.77mhz	PC-DOS 2.1	Aztec C v3.2d	 423	 454
+X * Tandy 1000	V20, 4.77mhz	MS-DOS 2.11	Aztec C v3.2d	 423	 458
+X * Tandy TRS-16B 68000-6Mhz	Xenix 1.3.5	cc		 438	 458
+X * PDP-11/34	-		RSTS/E		decus c		 438	 495
+X * Onyx C8002	Z8000-4Mhz	IS/1 1.1 (V7)	cc		 476	 511
+X * Tandy TRS-16B 68000-6Mhz	Xenix 1.3.5	Green Hills	 609	 617
+X * DEC PRO 380  11/73           Venix/PRO SVR2  cc               577     628
+X * FHL QT+	68000-10Mhz	Os9/68000	version 1.3	 603	 649 FH
+X * Apollo DN550	68010-?Mhz	AegisSR9/IX	cc 3.12		 666	 666
+X * HP-110	8086-5.33Mhz	MSDOS 2.11	Aztec-C		 641	 676 
+X * ATT PC6300	8086-8Mhz	MSDOS 2.11	b16cc 2.0	 632	 684
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	CI-C86 2.1	 666	 684
+X * Tandy 6000	68000-8Mhz	Xenix 3.0	cc		 694	 694
+X * IBM PC/AT	80286-6Mhz	Xenix 3.0	cc		 684	 704 MM
+X * Macintosh	68000-7.8Mhz 2M	Mac Rom		Mac C 32 bit int 694	 704
+X * Macintosh	68000-7.7Mhz	-		MegaMax C 2.0	 661	 709
+X * Macintosh512	68000-7.7Mhz	Mac ROM O/S	DeSmet(C ware)	 714	 714
+X * IBM PC/AT	80286-6Mhz	Xenix 3.0	cc		 704	 714 LM
+X * Codata 3300	68000-8Mhz	UniPlus+ (v7)	cc		 678	 725
+X * WICAT MB	68000-8Mhz	System V	WICAT C 4.1	 585	 731 ~
+X * Cadmus 9000	68010-10Mhz	UNIX		cc		 714	 735
+X * AT&T 6300    8086-8Mhz       Venix/86 SVR2   cc               668     743
+X * Cadmus 9790	68010-10Mhz 1MB	SVR0,Cadmus3.7	cc		 720	 747
+X * NEC PC9801F	8086-8Mhz	PCDOS 2.11	Lattice 2.15	 768	  -  @
+X * ATT PC6300	8086-8Mhz	MSDOS 2.11	CI-C86 2.20M	 769	 769
+X * Burroughs XE550 68010-10Mhz	Centix 2.10	cc		 769	 769 CT1
+X * EAGLE/TURBO  8086-8Mhz       Venix/86 SVR2   cc               696     779
+X * ALTOS 586	8086-10Mhz	Xenix 3.0b	cc 		 724	 793
+X * DEC 11/73	J-11 micro	Ultrix-11 V3.0	cc		 735	 793
+X * ATT 3B2/300	WE32000-?Mhz	UNIX 5.0.2	cc		 735	 806
+X * Apollo DN320	68010-?Mhz	AegisSR9/IX	cc 3.12		 806	 806
+X * IRIS-2400	68010-10Mhz	UNIX System V	cc		 772	 829
+X * Atari 520ST  68000-8Mhz      TOS             DigResearch      839     846
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	MS 3.0(large)	 833	 847 LM
+X * WICAT MB	68000-8Mhz	System V	WICAT C 4.1	 675	 853 S~
+X * VAX 11/750	-		Ultrix 1.1	4.2BSD cc	 781	 862
+X * CCC  7350A	68000-8MHz	UniSoft V.2	cc		 821	 875
+X * VAX 11/750	-		UNIX 4.2bsd	cc		 862	 877
+X * Fast Mac	68000-7.7Mhz	-		MegaMax C 2.0	 839	 904 +
+X * IBM PC/XT	8086-9.54Mhz	PCDOS 3.1	Microsoft 3.0	 833	 909 C1
+X * DEC 11/44			Ultrix-11 V3.0	cc		 862	 909
+X * Macintosh	68000-7.8Mhz 2M	Mac Rom		Mac C 16 bit int 877	 909 S
+X * CCC 3210	-		Xelos R01(SVR2)	cc		 849	 924
+X * CCC 3220	-               Ed. 7 v2.3      cc		 892	 925
+X * IBM PC/AT	80286-6Mhz	Xenix 3.0	cc -i		 909	 925
+X * AT&T 6300	8086, 8mhz	MS-DOS 2.11	Aztec C v3.2d	 862	 943
+X * IBM PC/AT	80286-6Mhz	Xenix 3.0	cc		 892	 961
+X * VAX 11/750	w/FPA		Eunice 3.2	cc		 914	 976
+X * IBM PC/XT	8086-9.54Mhz	PCDOS 3.1	Wizard 2.1	 892	 980 C1
+X * IBM PC/XT	8086-9.54Mhz	PCDOS 3.1	Lattice 2.15	 980	 980 C1
+X * Plexus P35	68000-10Mhz	UNIX System III cc		 984	 980
+X * PDP-11/73	KDJ11-AA 15Mhz	UNIX V7M 2.1	cc		 862     981
+X * VAX 11/750	w/FPA		UNIX 4.3bsd	cc		 994	 997
+X * IRIS-1400	68010-10Mhz	UNIX System V	cc		 909	1000
+X * IBM PC/AT	80286-6Mhz	Venix/86 2.1	cc		 961	1000
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	b16cc 2.0	 943	1063
+X * Zilog S8000/11 Z8001-5.5Mhz	Zeus 3.2	cc		1011	1084
+X * NSC ICM-3216 NSC 32016-10Mhz	UNIX SVR2	cc		1041	1084
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	MS 3.0(small)	1063	1086
+X * VAX 11/750	w/FPA		VMS		VAX-11 C 2.0	 958	1091
+X * Stride	68000-10Mhz	System-V/68	cc		1041	1111
+X * Plexus P/60  MC68000-12.5Mhz	UNIX SYSIII	Plexus		1111	1111
+X * ATT PC7300	68010-10Mhz	UNIX 5.0.2	cc		1041	1111
+X * CCC 3230	-		Xelos R01(SVR2)	cc		1040	1126
+X * Stride	68000-12Mhz	System-V/68	cc		1063	1136
+X * IBM PC/AT    80286-6Mhz      Venix/286 SVR2  cc              1056    1149
+X * Plexus P/60  MC68000-12.5Mhz	UNIX SYSIII	Plexus		1111	1163 T
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	Datalight 1.10	1190	1190
+X * ATT PC6300+	80286-6Mhz	MSDOS 3.1	b16cc 2.0	1111	1219
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.1	Wizard 2.1	1136	1219
+X * Sun2/120	68010-10Mhz	Sun 4.2BSD	cc		1136	1219
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.0	CI-C86 2.20M	1219	1219
+X * WICAT PB	68000-8Mhz	System V	WICAT C 4.1	 998	1226 ~
+X * MASSCOMP 500	68010-10MHz	RTU V3.0	cc (V3.2)	1156	1238
+X * Alliant FX/8 IP (68012-12Mhz) Concentrix	cc -ip;exec -i 	1170	1243 FX
+X * Cyb DataMate	68010-12.5Mhz	Uniplus 5.0	Unisoft cc	1162	1250
+X * PDP 11/70	-		UNIX 5.2	cc		1162	1250
+X * IBM PC/AT	80286-6Mhz	PCDOS 3.1	Lattice 2.15	1250	1250
+X * IBM PC/AT	80286-7.5Mhz	Venix/86 2.1	cc		1190	1315 *15
+X * Sun2/120	68010-10Mhz	Standalone	cc		1219	1315
+X * Intel 380	80286-8Mhz	Xenix R3.0up1	cc		1250	1315 *16
+X * Sequent Balance 8000	NS32032-10MHz	Dynix 2.0	cc	1250	1315 N12
+X * IBM PC/DSI-32 32032-10Mhz	MSDOS 3.1	GreenHills 2.14	1282	1315 C3
+X * ATT 3B2/400	WE32100-?Mhz	UNIX 5.2	cc		1315	1315
+X * CCC 3250XP	-		Xelos R01(SVR2)	cc		1215	1318
+X * IBM PC/RT 032 RISC(801?)?Mhz BSD 4.2         cc              1248    1333 RT
+X * DG MV4000	-		AOS/VS 5.00	cc		1333	1333
+X * IBM PC/AT	80286-8Mhz	Venix/86 2.1	cc		1275	1380 *16
+X * IBM PC/AT	80286-6Mhz	MSDOS 3.0	Microsoft 3.0	1250	1388
+X * ATT PC6300+	80286-6Mhz	MSDOS 3.1	CI-C86 2.20M	1428	1428
+X * COMPAQ/286   80286-8Mhz      Venix/286 SVR2  cc              1326    1443
+X * IBM PC/AT    80286-7.5Mhz    Venix/286 SVR2  cc              1333    1449 *15
+X * WICAT PB	68000-8Mhz	System V	WICAT C 4.1	1169	1464 S~
+X * Tandy II/6000 68000-8Mhz	Xenix 3.0	cc      	1384	1477
+X * MicroVAX II	-		Mach/4.3	cc		1513	1536
+X * WICAT MB	68000-12.5Mhz	System V	WICAT C 4.1	1246	1537 ~
+X * IBM PC/AT    80286-9Mhz      SCO Xenix V     cc              1540    1556 *18
+X * Cyb DataMate	68010-12.5Mhz	Uniplus 5.0	Unisoft cc	1470	1562 S
+X * VAX 11/780	-		UNIX 5.2	cc		1515	1562
+X * MicroVAX-II	-		-		-		1562	1612
+X * VAX-780/MA780		Mach/4.3	cc		1587	1612
+X * VAX 11/780	-		UNIX 4.3bsd	cc		1646	1662
+X * Apollo DN660	-		AegisSR9/IX	cc 3.12		1666	1666
+X * ATT 3B20	-		UNIX 5.2	cc		1515	1724
+X * NEC PC-98XA	80286-8Mhz	PCDOS 3.1	Lattice 2.15	1724	1724 @
+X * HP9000-500	B series CPU	HP-UX 4.02	cc		1724	-
+X * Ridge 32C V1	-		ROS 3.3		Ridge C (older)	1776	-
+X * IBM PC/STD	80286-8Mhz	MSDOS 3.0 	Microsoft 3.0	1724	1785 C2
+X * WICAT MB	68000-12.5Mhz	System V	WICAT C 4.1	1450	1814 S~
+X * WICAT PB	68000-12.5Mhz	System V	WICAT C 4.1	1530	1898 ~
+X * DEC-2065	KL10-Model B	TOPS-20 6.1FT5	Port. C Comp.	1937	1946
+X * Gould PN6005	-		UTX 1.1(4.2BSD)	cc		1675	1964
+X * DEC2060	KL-10		TOPS-20		cc		2000	2000 NM
+X * Intel 310AP	80286-8Mhz	Xenix 3.0	cc		1893	2009
+X * VAX 11/785	-		UNIX 5.2	cc		2083	2083
+X * VAX 11/785	-		VMS		VAX-11 C 2.0	2083	2083
+X * VAX 11/785	-		UNIX SVR2	cc		2123	2083
+X * VAX 11/785   -               ULTRIX-32 1.1   cc		2083    2091 
+X * VAX 11/785	-		UNIX 4.3bsd	cc		2135	2136
+X * WICAT PB	68000-12.5Mhz	System V	WICAT C 4.1	1780	2233 S~
+X * Pyramid 90x	-		OSx 2.3		cc		2272	2272
+X * Pyramid 90x	FPA,cache,4Mb	OSx 2.5		cc no -O	2777	2777
+X * Pyramid 90x	w/cache		OSx 2.5		cc w/-O		3333	3333
+X * IBM-4341-II	-		VM/SP3		Waterloo C 1.2  3333	3333
+X * IRIS-2400T	68020-16.67Mhz	UNIX System V	cc		3105	3401
+X * Celerity C-1200 ?		UNIX 4.2BSD	cc		3485	3468
+X * SUN 3/75	68020-16.67Mhz	SUN 4.2 V3	cc		3333	3571
+X * IBM-4341	Model 12	UTS 5.0		?		3685	3685
+X * SUN-3/160    68020-16.67Mhz  Sun 4.2 V3.0A   cc		3381    3764
+X * Sun 3/180	68020-16.67Mhz	Sun 4.2		cc		3333	3846
+X * IBM-4341	Model 12	UTS 5.0		?		3910	3910 MN
+X * MC 5400	68020-16.67MHz	RTU V3.0	cc (V4.0)	3952	4054
+X * Intel 386/20	80386-12.5Mhz	PMON debugger	Intel C386v0.2	4149	4386
+X * NCR Tower32  68020-16.67Mhz  SYS 5.0 Rel 2.0 cc              3846	4545
+X * MC 5600/5700	68020-16.67MHz	RTU V3.0	cc (V4.0)	4504	4746 %
+X * Intel 386/20	80386-12.5Mhz	PMON debugger	Intel C386v0.2	4534	4794 i1
+X * Intel 386/20	80386-16Mhz	PMON debugger	Intel C386v0.2	5304	5607
+X * Gould PN9080	custom ECL	UTX-32 1.1C	cc		5369	5676
+X * Gould 1460-342 ECL proc      UTX/32 1.1/c    cc              5342    5677 G1
+X * VAX-784	-		Mach/4.3	cc		5882	5882 &4
+X * Intel 386/20	80386-16Mhz	PMON debugger	Intel C386v0.2	5801	6133 i1
+X * VAX 8600	-		UNIX 4.3bsd	cc		7024	7088
+X * VAX 8600	-		VMS		VAX-11 C 2.0	7142	7142
+X * Alliant FX/8 CE		Concentrix	cc -ce;exec -c 	6952	7655 FX
+X * CCI POWER 6/32		COS(SV+4.2)	cc		7500	7800
+X * CCI POWER 6/32		POWER 6 UNIX/V	cc		8236	8498
+X * CCI POWER 6/32		4.2 Rel. 1.2b	cc		8963	9544
+X * Sperry (CCI Power 6)		4.2BSD		cc		9345   10000
+X * CRAY-X-MP/12	   105Mhz	COS 1.14	Cray C         10204   10204
+X * IBM-3083	-		UTS 5.0 Rel 1	cc	       16666   12500
+X * CRAY-1A	    80Mhz	CTSS		Cray C 2.0     12100   13888
+X * IBM-3083	-		VM/CMS HPO 3.4	Waterloo C 1.2 13889   13889
+X * Amdahl 470 V/8 		UTS/V 5.2       cc v1.23       15560   15560
+X * CRAY-X-MP/48	   105Mhz	CTSS		Cray C 2.0     15625   17857
+X * Amdahl 580	-		UTS 5.0 Rel 1.2	cc v1.5        23076   23076
+X * Amdahl 5860	 		UTS/V 5.2       cc v1.23       28970   28970
+X *
+X * NOTE
+X *   *   Crystal changed from 'stock' to listed value.
+X *   +   This Macintosh was upgraded from 128K to 512K in such a way that
+X *       the new 384K of memory is not slowed down by video generator accesses.
+X *   %   Single processor; MC == MASSCOMP
+X *   NM  A version 7 C compiler written at New Mexico Tech.
+X *   @   vanilla Lattice compiler used with MicroPro standard library
+X *   S   Shorts used instead of ints
+X *   T	 with Chris Torek's patches (whatever they are).
+X *   ~   For WICAT Systems: MB=MultiBus, PB=Proprietary Bus
+X *   LM  Large Memory Model. (Otherwise, all 80x8x results are small model)
+X *   MM  Medium Memory Model. (Otherwise, all 80x8x results are small model)
+X *   C1  Univation PC TURBO Co-processor; 9.54Mhz 8086, 640K RAM
+X *   C2  Seattle Telecom STD-286 board
+X *   C3  Definicon DSI-32 coprocessor
+X *   C?  Unknown co-processor board?
+X *   CT1 Convergent Technologies MegaFrame, 1 processor.
+X *   MN  Using Mike Newtons 'optimizer' (see net.sources).
+X *   G1  This Gould machine has 2 processors and was able to run 2 dhrystone
+X *       Benchmarks in parallel with no slowdown.
+X *   FH  FHC == Frank Hogg Labs (Hazelwood Uniquad 2 in an FHL box).
+X *   FX  The Alliant FX/8 is a system consisting of 1-8 CEs (computation
+X *	 engines) and 1-12 IPs (interactive processors). Note N8 applies.
+X *   RT  This is one of the RT's that CMU has been using for awhile.  I'm
+X *	 not sure that this is identical to the machine that IBM is selling
+X *	 to the public.
+X *   i1  Normally, the 386/20 starter kit has a 16k direct mapped cache
+X *	 which inserts 2 or 3 wait states on a write thru.  These results
+X *	 were obtained by disabling the write-thru, or essentially turning
+X *	 the cache into 0 wait state memory.
+X *   Nnn This machine has multiple processors, allowing "nn" copies of the
+X *	 benchmark to run in the same time as 1 copy.
+X *   &nn This machine has "nn" processors, and the benchmark results were
+X *	 obtained by having all "nn" processors working on 1 copy of dhrystone.
+X *	 (Note, this is different than Nnn. Salesmen like this measure).
+X *   ?   I don't trust results marked with '?'.  These were sent to me with
+X *       either incomplete info, or with times that just don't make sense.
+X *	 ?? means I think the performance is too poor, ?! means too good.
+X *       If anybody can confirm these figures, please respond.
+X *
+X *  ABBREVIATIONS
+X *	CCC	Concurrent Computer Corp. (was Perkin-Elmer)
+X *	MC	Masscomp
+X *
+X *--------------------------------RESULTS END----------------------------------
+X *
+X *	The following program contains statements of a high-level programming
+X *	language (C) in a distribution considered representative:
+X *
+X *	assignments			53%
+X *	control statements		32%
+X *	procedure, function calls	15%
+X *
+X *	100 statements are dynamically executed.  The program is balanced with
+X *	respect to the three aspects:
+X *		- statement type
+X *		- operand type (for simple data types)
+X *		- operand access
+X *			operand global, local, parameter, or constant.
+X *
+X *	The combination of these three aspects is balanced only approximately.
+X *
+X *	The program does not compute anything meaningfull, but it is
+X *	syntactically and semantically correct.
+X *
+X */
+X
+X/* Accuracy of timings and human fatigue controlled by next two lines */
+X/*#define LOOPS	5000		/* Use this for slow or 16 bit machines */
+X#define LOOPS	50000		/* Use this for slow or 16 bit machines */
+X/*#define LOOPS	500000		/* Use this for faster machines */
+X
+X/* Compiler dependent options */
+X#undef	NOENUM			/* Define if compiler has no enum's */
+X#undef	NOSTRUCTASSIGN		/* Define if compiler can't assign structures */
+X
+X/* define only one of the next two defines */
+X#define TIMES			/* Use times(2) time function */
+X/*#define TIME			/* Use time(2) time function */
+X
+X/* define the granularity of your times(2) function (when used) */
+X#define HZ      100             /* times(2) returns 1/60 second (most) */
+X
+X/* for compatibility with goofed up version */
+X/*#define GOOF			/* Define if you want the goofed up version */
+X
+X#ifdef GOOF
+Xchar	Version[] = "1.0";
+X#else
+Xchar	Version[] = "1.1";
+X#endif
+X
+X#ifdef	NOSTRUCTASSIGN
+X#define	structassign(d, s)	memcpy(&(d), &(s), sizeof(d))
+X#else
+X#define	structassign(d, s)	d = s
+X#endif
+X
+X#ifdef	NOENUM
+X#define	Ident1	1
+X#define	Ident2	2
+X#define	Ident3	3
+X#define	Ident4	4
+X#define	Ident5	5
+Xtypedef int	Enumeration;
+X#else
+Xtypedef enum	{Ident1, Ident2, Ident3, Ident4, Ident5} Enumeration;
+X#endif
+X
+Xtypedef int	OneToThirty;
+Xtypedef int	OneToFifty;
+Xtypedef char	CapitalLetter;
+Xtypedef char	String30[31];
+Xtypedef int	Array1Dim[51];
+Xtypedef int	Array2Dim[51][51];
+X
+Xstruct	Record
+X{
+X	struct Record		*PtrComp;
+X	Enumeration		Discr;
+X	Enumeration		EnumComp;
+X	OneToFifty		IntComp;
+X	String30		StringComp;
+X};
+X
+Xtypedef struct Record 	RecordType;
+Xtypedef RecordType *	RecordPtr;
+Xtypedef int		boolean;
+X
+X#define	NULL		0
+X#define	TRUE		1
+X#define	FALSE		0
+X
+X#ifndef REG
+X#define	REG
+X#endif
+X
+Xextern Enumeration	Func1();
+Xextern boolean		Func2();
+X
+X#ifdef TIMES
+X#include <sys/types.h>
+X#include <sys/times.h>
+X#endif
+X
+Xmain()
+X{
+X	Proc0();
+X	exit(0);
+X}
+X
+X/*
+X * Package 1
+X */
+Xint		IntGlob;
+Xboolean		BoolGlob;
+Xchar		Char1Glob;
+Xchar		Char2Glob;
+XArray1Dim	Array1Glob;
+XArray2Dim	Array2Glob;
+XRecordPtr	PtrGlb;
+XRecordPtr	PtrGlbNext;
+X
+XProc0()
+X{
+X	OneToFifty		IntLoc1;
+X	REG OneToFifty		IntLoc2;
+X	OneToFifty		IntLoc3;
+X	REG char		CharLoc;
+X	REG char		CharIndex;
+X	Enumeration	 	EnumLoc;
+X	String30		String1Loc;
+X	String30		String2Loc;
+X	extern char		*malloc();
+X
+X	register unsigned int	i;
+X#ifdef TIME
+X	long			time();
+X	long			starttime;
+X	long			benchtime;
+X	long			nulltime;
+X
+X	starttime = time( (long *) 0);
+X	for (i = 0; i < LOOPS; ++i);
+X	nulltime = time( (long *) 0) - starttime; /* Computes o'head of loop */
+X#endif
+X#ifdef TIMES
+X	time_t			starttime;
+X	time_t			benchtime;
+X	time_t			nulltime;
+X	struct tms		tms;
+X
+X	times(&tms); starttime = tms.tms_utime;
+X	for (i = 0; i < LOOPS; ++i);
+X	times(&tms);
+X	nulltime = tms.tms_utime - starttime; /* Computes overhead of looping */
+X#endif
+X
+X	PtrGlbNext = (RecordPtr) malloc(sizeof(RecordType));
+X	PtrGlb = (RecordPtr) malloc(sizeof(RecordType));
+X	PtrGlb->PtrComp = PtrGlbNext;
+X	PtrGlb->Discr = Ident1;
+X	PtrGlb->EnumComp = Ident3;
+X	PtrGlb->IntComp = 40;
+X	strcpy(PtrGlb->StringComp, "DHRYSTONE PROGRAM, SOME STRING");
+X#ifndef	GOOF
+X	strcpy(String1Loc, "DHRYSTONE PROGRAM, 1'ST STRING");	/*GOOF*/
+X#endif
+X	Array2Glob[8][7] = 10;	/* Was missing in published program */
+X
+X/*****************
+X-- Start Timer --
+X*****************/
+X#ifdef TIME
+X	starttime = time( (long *) 0);
+X#endif
+X#ifdef TIMES
+X	times(&tms); starttime = tms.tms_utime;
+X#endif
+X	for (i = 0; i < LOOPS; ++i)
+X	{
+X
+X		Proc5();
+X		Proc4();
+X		IntLoc1 = 2;
+X		IntLoc2 = 3;
+X		strcpy(String2Loc, "DHRYSTONE PROGRAM, 2'ND STRING");
+X		EnumLoc = Ident2;
+X		BoolGlob = ! Func2(String1Loc, String2Loc);
+X		while (IntLoc1 < IntLoc2)
+X		{
+X			IntLoc3 = 5 * IntLoc1 - IntLoc2;
+X			Proc7(IntLoc1, IntLoc2, &IntLoc3);
+X			++IntLoc1;
+X		}
+X		Proc8(Array1Glob, Array2Glob, IntLoc1, IntLoc3);
+X		Proc1(PtrGlb);
+X		for (CharIndex = 'A'; CharIndex <= Char2Glob; ++CharIndex)
+X			if (EnumLoc == Func1(CharIndex, 'C'))
+X				Proc6(Ident1, &EnumLoc);
+X		IntLoc3 = IntLoc2 * IntLoc1;
+X		IntLoc2 = IntLoc3 / IntLoc1;
+X		IntLoc2 = 7 * (IntLoc3 - IntLoc2) - IntLoc1;
+X		Proc2(&IntLoc1);
+X	}
+X
+X/*****************
+X-- Stop Timer --
+X*****************/
+X
+X#ifdef TIME
+X	benchtime = time( (long *) 0) - starttime - nulltime;
+X	printf("Dhrystone(%s) time for %ld passes = %ld\n",
+X		Version,
+X		(long) LOOPS, benchtime);
+X	printf("This machine benchmarks at %ld dhrystones/second\n",
+X		((long) LOOPS) / benchtime);
+X#endif
+X#ifdef TIMES
+X	times(&tms);
+X	benchtime = tms.tms_utime - starttime - nulltime;
+X	printf("Dhrystone(%s) time for %ld passes = %ld\n",
+X		Version,
+X		(long) LOOPS, benchtime/HZ);
+X	printf("This machine benchmarks at %ld dhrystones/second\n",
+X		((long) LOOPS) * HZ / benchtime);
+X#endif
+X
+X}
+X
+XProc1(PtrParIn)
+XREG RecordPtr	PtrParIn;
+X{
+X#define	NextRecord	(*(PtrParIn->PtrComp))
+X
+X	structassign(NextRecord, *PtrGlb);
+X	PtrParIn->IntComp = 5;
+X	NextRecord.IntComp = PtrParIn->IntComp;
+X	NextRecord.PtrComp = PtrParIn->PtrComp;
+X	Proc3(NextRecord.PtrComp);
+X	if (NextRecord.Discr == Ident1)
+X	{
+X		NextRecord.IntComp = 6;
+X		Proc6(PtrParIn->EnumComp, &NextRecord.EnumComp);
+X		NextRecord.PtrComp = PtrGlb->PtrComp;
+X		Proc7(NextRecord.IntComp, 10, &NextRecord.IntComp);
+X	}
+X	else
+X		structassign(*PtrParIn, NextRecord);
+X
+X#undef	NextRecord
+X}
+X
+XProc2(IntParIO)
+XOneToFifty	*IntParIO;
+X{
+X	REG OneToFifty		IntLoc;
+X	REG Enumeration		EnumLoc;
+X
+X	IntLoc = *IntParIO + 10;
+X	for(;;)
+X	{
+X		if (Char1Glob == 'A')
+X		{
+X			--IntLoc;
+X			*IntParIO = IntLoc - IntGlob;
+X			EnumLoc = Ident1;
+X		}
+X		if (EnumLoc == Ident1)
+X			break;
+X	}
+X}
+X
+XProc3(PtrParOut)
+XRecordPtr	*PtrParOut;
+X{
+X	if (PtrGlb != NULL)
+X		*PtrParOut = PtrGlb->PtrComp;
+X	else
+X		IntGlob = 100;
+X	Proc7(10, IntGlob, &PtrGlb->IntComp);
+X}
+X
+XProc4()
+X{
+X	REG boolean	BoolLoc;
+X
+X	BoolLoc = Char1Glob == 'A';
+X	BoolLoc |= BoolGlob;
+X	Char2Glob = 'B';
+X}
+X
+XProc5()
+X{
+X	Char1Glob = 'A';
+X	BoolGlob = FALSE;
+X}
+X
+Xextern boolean Func3();
+X
+XProc6(EnumParIn, EnumParOut)
+XREG Enumeration	EnumParIn;
+XREG Enumeration	*EnumParOut;
+X{
+X	*EnumParOut = EnumParIn;
+X	if (! Func3(EnumParIn) )
+X		*EnumParOut = Ident4;
+X	switch (EnumParIn)
+X	{
+X	case Ident1:	*EnumParOut = Ident1; break;
+X	case Ident2:	if (IntGlob > 100) *EnumParOut = Ident1;
+X			else *EnumParOut = Ident4;
+X			break;
+X	case Ident3:	*EnumParOut = Ident2; break;
+X	case Ident4:	break;
+X	case Ident5:	*EnumParOut = Ident3;
+X	}
+X}
+X
+XProc7(IntParI1, IntParI2, IntParOut)
+XOneToFifty	IntParI1;
+XOneToFifty	IntParI2;
+XOneToFifty	*IntParOut;
+X{
+X	REG OneToFifty	IntLoc;
+X
+X	IntLoc = IntParI1 + 2;
+X	*IntParOut = IntParI2 + IntLoc;
+X}
+X
+XProc8(Array1Par, Array2Par, IntParI1, IntParI2)
+XArray1Dim	Array1Par;
+XArray2Dim	Array2Par;
+XOneToFifty	IntParI1;
+XOneToFifty	IntParI2;
+X{
+X	REG OneToFifty	IntLoc;
+X	REG OneToFifty	IntIndex;
+X
+X	IntLoc = IntParI1 + 5;
+X	Array1Par[IntLoc] = IntParI2;
+X	Array1Par[IntLoc+1] = Array1Par[IntLoc];
+X	Array1Par[IntLoc+30] = IntLoc;
+X	for (IntIndex = IntLoc; IntIndex <= (IntLoc+1); ++IntIndex)
+X		Array2Par[IntLoc][IntIndex] = IntLoc;
+X	++Array2Par[IntLoc][IntLoc-1];
+X	Array2Par[IntLoc+20][IntLoc] = Array1Par[IntLoc];
+X	IntGlob = 5;
+X}
+X
+XEnumeration Func1(CharPar1, CharPar2)
+XCapitalLetter	CharPar1;
+XCapitalLetter	CharPar2;
+X{
+X	REG CapitalLetter	CharLoc1;
+X	REG CapitalLetter	CharLoc2;
+X
+X	CharLoc1 = CharPar1;
+X	CharLoc2 = CharLoc1;
+X	if (CharLoc2 != CharPar2)
+X		return (Ident1);
+X	else
+X		return (Ident2);
+X}
+X
+Xboolean Func2(StrParI1, StrParI2)
+XString30	StrParI1;
+XString30	StrParI2;
+X{
+X	REG OneToThirty		IntLoc;
+X	REG CapitalLetter	CharLoc;
+X
+X	IntLoc = 1;
+X	while (IntLoc <= 1)
+X		if (Func1(StrParI1[IntLoc], StrParI2[IntLoc+1]) == Ident1)
+X		{
+X			CharLoc = 'A';
+X			++IntLoc;
+X		}
+X	if (CharLoc >= 'W' && CharLoc <= 'Z')
+X		IntLoc = 7;
+X	if (CharLoc == 'X')
+X		return(TRUE);
+X	else
+X	{
+X		if (strcmp(StrParI1, StrParI2) > 0)
+X		{
+X			IntLoc += 7;
+X			return (TRUE);
+X		}
+X		else
+X			return (FALSE);
+X	}
+X}
+X
+Xboolean Func3(EnumParIn)
+XREG Enumeration	EnumParIn;
+X{
+X	REG Enumeration	EnumLoc;
+X
+X	EnumLoc = EnumParIn;
+X	if (EnumLoc == Ident3) return (TRUE);
+X	return (FALSE);
+X}
+X
+X#ifdef	NOSTRUCTASSIGN
+Xmemcpy(d, s, l)
+Xregister char	*d;
+Xregister char	*s;
+Xregister int	l;
+X{
+X	while (l--) *d++ = *s++;
+X}
+X#endif
+X/* ---------- */
+END_OF_dhrystone.c
+if test 27341 -ne `wc -c <dhrystone.c`; then
+    echo shar: \"dhrystone.c\" unpacked with wrong size!
+fi
+# end of overwriting check
+fi
+echo shar: End of shell archive.
+exit 0
+----------------------------------------------------------------------
+
+       ____  ____
+      /   / / / /   Michael K. Gschwind             m...@vlsivie.at
+     /   / / / /    Institute for VLSI-Design       m...@vlsivie.uucp
+     ---/           Technical University, Vienna 
+       / 
+   ___/ 

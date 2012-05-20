@@ -1,0 +1,62 @@
+Reference: http://en.wikipedia.org/wiki/Dhrystone
+
+1984-11-15-dhrystone-part1
+1984-11-15-dhrystone-part2
+1984-11-15-dhrystone-part3
+1984-11-15-dhrystone-part4
+    Posted to net.sources, probably by Reinhold P. Weicker, 1984-11-15
+    Dhrystone version 1 (Ada only), plus C and Pascal "version 2"
+    Message-ID: <28600001@siemens.UUCP>
+    Message-ID: <28600005@siemens.UUCP>
+    Message-ID: <28600006@siemens.UUCP>
+    Message-ID: <28600007@siemens.UUCP>
+
+1986-10-03-dhrystone-ada
+    Posted to net.lang.ada and net.sources by Bob Bentley, 1986-10-03
+    Dhrystone version 1 repost
+    Message-ID: <155@omepd>
+    No significant changes from 1984 posting (some whitespace changes
+    and one paragraph of comments is formatted differently)
+    I haven't checked this version into git
+
+1988-03-08-dhrystone-2.0-1of3
+1988-03-08-dhrystone-2.0-2of3
+1988-03-08-dhrystone-2.0-3of3
+    Posted to comp.arch by Rick Richardson, 1988-03-08
+    Pascal and C, version 2.0
+    Message-ID: <492@pcrat.UUCP>
+    Message-ID: <493@pcrat.UUCP>
+    Message-ID: <494@pcrat.UUCP>
+
+1990-02-14-dhrystone-part1
+1990-02-14-dhrystone-part2
+1990-02-14-dhrystone-part3
+1990-02-14-dhrystone-part4
+    Posted to alt.sources from TU Vienna EDP-Center, Vienna, Austria, 1990-02-14
+    Pascal and C, version 2.1
+    Message-ID: <1101@tuvie>
+    Message-ID: <1102@tuvie>
+    Message-ID: <1103@tuvie>
+    Message-ID: <1104@tuvie>
+
+dhry-c
+    Linked from the Wikipedia article:
+    http://www.netlib.org/benchmark/dhry-c
+    Dated 1990-08-25
+    C, version 2.1
+
+dhry-ada
+    http://www.netlib.org/benchmark/dhry-ada
+    Dated 1990-08-25
+    Ada, version 2.1
+
+dhry-pascal
+    http://www.netlib.org/benchmark/dhry-pascal
+    Dated 1990-08-25
+    Pascal, version 2.1
+
+dry.c
+    Linked from the Wikipedia article:
+    http://homepages.cwi.nl/~steven/dry.c
+    Dated 1996-03-08
+    C, version 2.2
